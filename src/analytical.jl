@@ -68,7 +68,7 @@ function Analytical{S,M}(sys::System{S,M}, beta::Beta)
 
     Z = sum(Zs)
     E = sum(E1s .* Zs / Z)
-    Cv = sum(E2s .* Zs / Z) - E^2
+    Cv = (sum(E2s .* Zs / Z) - E^2) * beta^2
 
     Analytical(Z, E, Cv)
 end

@@ -26,7 +26,7 @@ function SumOverStates{S,M}(sys::System{S,M}, beta::Beta, basis_size::Int)
 
     Z = sum(exp(-beta * Es))
     E = sum(exp(-beta * Es) .* Es) / Z
-    Cv = sum(exp(-beta * Es) .* (Es - E).^2) / Z
+    Cv = sum(exp(-beta * Es) .* (Es - E).^2) / Z * beta^2
 
     SumOverStates(Z, E, Cv)
 end

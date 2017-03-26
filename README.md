@@ -29,7 +29,7 @@ To use it without installing it (e.g. from a local git checkout), you'll need to
 * The input frequency parameters are in units of `E` (i.e. `hbar = 1`).
 * Positions are dimensionless, so the other input parameters are also in units of `E`.
 * Reciprocal temperatures are in units of reciprocal energy (i.e. `k_B = 1`).
-* Heat capacities are in units of `E^2 / k_B T^2`.
+* Heat capacities are dimensionless (in units of `k_B`).
 
 
 ## Examples
