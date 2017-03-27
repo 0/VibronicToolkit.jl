@@ -6,6 +6,10 @@ Trotter factorized solution for a small system.
 immutable Trotter <: Solution
     "Partition function."
     Z::Float64
+    "Energy."
+    E::Float64
+    "Heat capacity."
+    Cv::Float64
 end
 
 """
@@ -20,9 +24,14 @@ function Trotter{S,M}(sys::System{S,M}, beta::Beta, basis_size::Int, P::Int)
 
     # Single Trotter product.
     tau = beta / P
-    A = expm(-tau * h0) * expm(-tau * V)
+    rho = expm(-tau * h0) * expm(-tau * V)
 
-    Z = trace(A^P)
+    # Full path.
+    path = rho^P
 
-    Trotter(Z)
+    Z = trace(path)
+    E = trace(path * (h0 + V)) / Z
+    Cv = (trace(path * (h0 + V)^2) / Z - E^2) * beta^2
+
+    Trotter(Z, E, Cv)
 end

@@ -39,3 +39,5 @@ trotter = Trotter(sys, beta, basis_size, P)
 simple = Simple(sys, beta)
 
 println("Z/Z: $(trotter.Z/simple.Z)")
+println("E: $(trotter.E)")
+println("Cv: $(trotter.Cv)")
