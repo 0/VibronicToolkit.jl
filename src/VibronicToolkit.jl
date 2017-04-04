@@ -9,7 +9,7 @@ export
     Beta,
     System,
 
-    Simple,
+    simplify,
 
     Analytical,
     SumOverStates,
@@ -30,7 +30,6 @@ abstract Solution
 include("system.jl")
 include("operators.jl")
 
-include("simple.jl")
 include("analytical.jl")
 include("sos.jl")
 include("trotter.jl")

@@ -36,7 +36,7 @@ basis_size = c[:basis_size]
 P = c[:num_links]
 
 trotter = Trotter(sys, beta, basis_size, P)
-simple = Simple(sys, beta)
+simple = Analytical(simplify(sys), beta)
 
 println("Z/Z: $(trotter.Z/simple.Z)")
 println("E: $(trotter.E)")

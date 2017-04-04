@@ -81,6 +81,23 @@ function System(path)
 end
 
 """
+    simplify{S,M}(sys::System{S,M})
+
+Generate a simplified version of `sys` with no quadratic coupling and no
+inter-surface linear coupling.
+"""
+function simplify{S,M}(sys::System{S,M})
+    energy_new = diagm(diag(sys.energy))
+
+    lin_new = zeros(sys.lin)
+    for s in 1:S
+        lin_new[:, s, s] = sys.lin[:, s, s]
+    end
+
+    System{S,M}(energy_new, sys.freq, lin_new, zeros(sys.quad))
+end
+
+"""
     is_coupled{S,M}(sys::System{S,M})
 
 Whether `sys` has coupling between surfaces.

@@ -24,7 +24,7 @@ sys = System(c[:conf])
 beta = Beta(c[:beta])
 
 analytical = Analytical(sys, beta)
-simple = Simple(sys, beta)
+simple = Analytical(simplify(sys), beta)
 
 println("Z/Z: $(analytical.Z/simple.Z)")
 println("E: $(analytical.E)")

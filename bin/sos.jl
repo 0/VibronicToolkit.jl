@@ -30,7 +30,7 @@ beta = Beta(c[:beta])
 basis_size = c[:basis_size]
 
 sos = SumOverStates(sys, beta, basis_size)
-simple = Simple(sys, beta)
+simple = Analytical(simplify(sys), beta)
 
 println("Z/Z: $(sos.Z/simple.Z)")
 println("E: $(sos.E)")
