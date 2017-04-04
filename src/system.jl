@@ -46,7 +46,7 @@ function System(path)
     for (idx1, data1) in enumerate(data["frequencies"])
         freq[idx1, :] = data1
     end
-    all(freq .> 0) || error("Negative freq")
+    all(freq .> 0) || error("Nonpositive freq")
 
     lin = zeros(M, S, S)
     length(data["linear coupling"]) == size(lin, 1) || error("Bad lin size")
