@@ -13,12 +13,12 @@ immutable Trotter <: Solution
 end
 
 """
-    Trotter{S,M}(sys::System{S,M}, beta::Beta, basis_size::Int, P::Int)
+    Trotter{S,M}(sys::System{S,M}, beta::Float64, basis_size::Int, P::Int)
 
 Calculate the solution for `sys` at `beta` with `basis_size` basis functions
 and `P` links.
 """
-function Trotter{S,M}(sys::System{S,M}, beta::Beta, basis_size::Int, P::Int)
+function Trotter{S,M}(sys::System{S,M}, beta::Float64, basis_size::Int, P::Int)
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 

@@ -31,7 +31,7 @@ end
 c = parsed_args = parse_args(ARGS, s, as_symbols=true)
 
 sys = System(c[:conf])
-beta = Beta(c[:beta])
+beta = c[:beta]
 P = c[:num_links]
 num_samples = c[:num_samples]
 

@@ -7,7 +7,7 @@ immutable SamplingParameters{S,M,P}
     sys::System{S,M}
 
     "Imaginary time step."
-    tau::Beta
+    tau::Float64
 
     "Surface weights."
     weights::WeightVec
@@ -28,11 +28,11 @@ immutable SamplingParameters{S,M,P}
 end
 
 """
-    SamplingParameters{S,M}(sys::System{S,M}, beta::Beta, P::Int)
+    SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
 
 Generate sampling parameters for `sys` at `beta` with `P` links.
 """
-function SamplingParameters{S,M}(sys::System{S,M}, beta::Beta, P::Int)
+function SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
     tau = beta / P
 
     Zas = ones(S)
@@ -155,12 +155,12 @@ immutable Sampling <: Solution
 end
 
 """
-    Sampling{S,M}(sys::System{S,M}, beta::Beta, P::Int, num_samples::Int)
+    Sampling{S,M}(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples.
 """
-function Sampling{S,M}(sys::System{S,M}, beta::Beta, P::Int, num_samples::Int)
+function Sampling{S,M}(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int)
     sp = SamplingParameters(sys, beta, P)
 
     samples = zeros(num_samples)

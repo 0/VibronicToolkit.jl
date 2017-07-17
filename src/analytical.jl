@@ -13,11 +13,11 @@ immutable Analytical <: Solution
 end
 
 """
-    Analytical{S,M}(sys::System{S,M}, beta::Beta)
+    Analytical{S,M}(sys::System{S,M}, beta::Float64)
 
 Calculate the solution for `sys` at `beta`.
 """
-function Analytical{S,M}(sys::System{S,M}, beta::Beta)
+function Analytical{S,M}(sys::System{S,M}, beta::Float64)
     is_coupled(sys) && error("Analytical solution only applies to uncoupled systems")
 
     Zs = exp(-beta * diag(sys.energy))

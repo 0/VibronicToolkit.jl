@@ -13,11 +13,11 @@ immutable SumOverStates <: Solution
 end
 
 """
-    SumOverStates{S,M}(sys::System{S,M}, beta::Beta, basis_size::Int)
+    SumOverStates{S,M}(sys::System{S,M}, beta::Float64, basis_size::Int)
 
 Calculate the solution for `sys` at `beta` with `basis_size` basis functions.
 """
-function SumOverStates{S,M}(sys::System{S,M}, beta::Beta, basis_size::Int)
+function SumOverStates{S,M}(sys::System{S,M}, beta::Float64, basis_size::Int)
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 

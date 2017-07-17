@@ -6,7 +6,6 @@ using ProgressMeter: @showprogress
 using StatsBase: WeightVec
 
 export
-    Beta,
     System,
 
     simplify,
@@ -15,12 +14,6 @@ export
     SumOverStates,
     Trotter,
     Sampling
-
-"""
-Inverse temperature.
-"""
-typealias Beta Float64
-Beta(x::Float64) = x > 0.0 ? x : throw(DomainError())
 
 """
 Solution for vibronic problem.

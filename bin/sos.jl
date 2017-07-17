@@ -26,7 +26,7 @@ end
 c = parsed_args = parse_args(ARGS, s, as_symbols=true)
 
 sys = System(c[:conf])
-beta = Beta(c[:beta])
+beta = c[:beta]
 basis_size = c[:basis_size]
 
 sos = SumOverStates(sys, beta, basis_size)

@@ -21,7 +21,7 @@ end
 c = parsed_args = parse_args(ARGS, s, as_symbols=true)
 
 sys = System(c[:conf])
-beta = Beta(c[:beta])
+beta = c[:beta]
 
 analytical = Analytical(sys, beta)
 simple = Analytical(simplify(sys), beta)
