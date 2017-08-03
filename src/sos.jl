@@ -3,7 +3,7 @@
 """
 Sum over states solution for a small system.
 """
-immutable SumOverStates <: Solution
+struct SumOverStates <: Solution
     "Partition function."
     Z::Float64
     "Energy."
@@ -24,9 +24,9 @@ function SumOverStates{S,M}(sys::System{S,M}, beta::Float64, basis_size::Int)
     eigen = eigfact(Symmetric(h0 + V))
     Es = eigen[:values]
 
-    Z = sum(exp(-beta * Es))
-    E = sum(exp(-beta * Es) .* Es) / Z
-    Cv = sum(exp(-beta * Es) .* (Es - E).^2) / Z * beta^2
+    Z = sum(exp.(-beta * Es))
+    E = sum(exp.(-beta * Es) .* Es) / Z
+    Cv = sum(exp.(-beta * Es) .* (Es - E).^2) / Z * beta^2
 
     SumOverStates(Z, E, Cv)
 end

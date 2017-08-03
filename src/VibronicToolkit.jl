@@ -18,7 +18,7 @@ export
 """
 Solution for vibronic problem.
 """
-abstract Solution
+abstract type Solution end
 
 include("system.jl")
 include("operators.jl")

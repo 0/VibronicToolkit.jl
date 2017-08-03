@@ -3,7 +3,7 @@
 """
 System of `M` coupled harmonic oscillators (modes) across `S` surfaces.
 """
-immutable System{S,M}
+struct System{S,M}
     "Energy offsets (S, S)."
     energy::Matrix{Float64}
     "Frequencies (M, S)."
@@ -91,7 +91,7 @@ function simplify{S,M}(sys::System{S,M})
 
     lin_new = zeros(sys.lin)
     for s in 1:S
-        lin_new[:, s, s] = sys.lin[:, s, s]
+        lin_new[:, s, s] .= sys.lin[:, s, s]
     end
 
     System{S,M}(energy_new, sys.freq, lin_new, zeros(sys.quad))

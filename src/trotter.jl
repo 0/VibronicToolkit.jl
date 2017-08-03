@@ -3,7 +3,7 @@
 """
 Trotter factorized solution for a small system.
 """
-immutable Trotter <: Solution
+struct Trotter <: Solution
     "Partition function."
     Z::Float64
     "Energy."

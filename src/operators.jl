@@ -3,7 +3,7 @@
 """
 Harmonic oscillator basis for `S` surfaces and `M` modes.
 """
-immutable Basis{S,M}
+struct Basis{S,M}
     "Single-mode basis size."
     size::Int
 
@@ -40,7 +40,7 @@ id(basis::Basis) = eye(basis.size)
 
 Annihilation operator in `basis` for a single mode.
 """
-a(basis::Basis) = diagm(sqrt(1.0:basis.size-1), 1)
+a(basis::Basis) = diagm(sqrt.(1.0:basis.size-1), 1)
 
 """
     n(basis::Basis)
@@ -137,9 +137,9 @@ function operators{S,M}(basis::Basis{S,M}, sys::System{S,M})
 
     # Flatten into matrices.
     h0 = reshape(permutedims(h0s, [1, 3, 2, 4]), (basis.dim, basis.dim))
-    maximum(abs(h0' - h0)) < 1e-13 || warn("Asymmetric h0: $(maximum(abs(h0' - h0)))")
+    maximum(abs.(h0' - h0)) < 1e-13 || warn("Asymmetric h0: $(maximum(abs.(h0' - h0)))")
     V = reshape(permutedims(Vs, [1, 3, 2, 4]), (basis.dim, basis.dim))
-    maximum(abs(V' - V)) < 1e-13 || warn("Asymmetric V: $(maximum(abs(V' - V)))")
+    maximum(abs.(V' - V)) < 1e-13 || warn("Asymmetric V: $(maximum(abs.(V' - V)))")
 
     h0, V
 end

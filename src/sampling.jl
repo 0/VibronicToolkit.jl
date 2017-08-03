@@ -3,7 +3,7 @@
 """
 Sampling parameters for a particular system.
 """
-immutable SamplingParameters{S,M,P}
+struct SamplingParameters{S,M,P}
     sys::System{S,M}
 
     "Imaginary time step."
@@ -46,11 +46,11 @@ function SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
         end
     end
 
-    preweights = exp(-beta * (diag(sys.energy) + deltas))
+    preweights = exp.(-beta * (diag(sys.energy) + deltas))
     weights = WeightVec(preweights .* Zas)
 
-    Cs = cosh(sys.freq * tau)
-    Ss = sinh(sys.freq * tau)
+    Cs = cosh.(sys.freq * tau)
+    Ss = sinh.(sys.freq * tau)
     S_prods = Float64[prod(Ss[:, s]) for s in 1:S]
 
     mvns = Matrix{MvNormal}(M, S)
@@ -65,7 +65,7 @@ function SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
 
             # Convariance matrix.
             cov = inv(prec / Ss[m, s])
-            maximum(abs(cov' - cov)) < 1e-13 || warn("Asymmetric cov: $(maximum(abs(cov' - cov)))")
+            maximum(abs.(cov' - cov)) < 1e-13 || warn("Asymmetric cov: $(maximum(abs.(cov' - cov)))")
             # Force it to be symmetric.
             cov = (cov + cov') / 2
 
@@ -147,7 +147,7 @@ end
 """
 Monte Carlo solution for an arbitrary system.
 """
-immutable Sampling <: Solution
+struct Sampling <: Solution
     "Partition function."
     Z::Float64
     "Partition function standard error."

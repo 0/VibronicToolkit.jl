@@ -3,7 +3,7 @@
 Tools for vibronic Hamiltonians.
 This package aims for correctness and readability rather than performance, so these tools are mainly useful for verifying other implementations.
 
-Tested with Julia 0.5.
+Tested with Julia 0.6.
 
 
 ## Installation

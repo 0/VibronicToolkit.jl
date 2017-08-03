@@ -3,7 +3,7 @@
 """
 Exact solution for an uncoupled system.
 """
-immutable Analytical <: Solution
+struct Analytical <: Solution
     "Partition function."
     Z::Float64
     "Energy."
@@ -20,18 +20,18 @@ Calculate the solution for `sys` at `beta`.
 function Analytical{S,M}(sys::System{S,M}, beta::Float64)
     is_coupled(sys) && error("Analytical solution only applies to uncoupled systems")
 
-    Zs = exp(-beta * diag(sys.energy))
+    Zs = exp.(-beta * diag(sys.energy))
     E1s = zeros(Zs)
     E2s = zeros(Zs)
 
     for s in 1:S
         # Find the normal mode frequencies for this surface.
-        freq_sqrt = sqrt(sys.freq[:, s])
+        freq_sqrt = sqrt.(sys.freq[:, s])
         lin_p = sys.lin[:, s, s] .* freq_sqrt
         A = diagm(sys.freq[:, s].^2) + sys.quad[:, :, s, s] .* (freq_sqrt * freq_sqrt')
         issymmetric(A) || warn("Asymmetric A")
         eigen = eigfact(Symmetric(A))
-        lambdas = sqrt(eigen[:values])
+        lambdas = sqrt.(eigen[:values])
         T = eigen[:vectors]'
         lin_pp = T * lin_p
 
