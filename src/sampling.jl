@@ -10,7 +10,7 @@ struct SamplingParameters{S,M,P}
     tau::Float64
 
     "Surface weights."
-    weights::WeightVec
+    weights::Weights
     "Multivariate normal distributions."
     mvns::Matrix{MvNormal}
 
@@ -47,7 +47,7 @@ function SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
     end
 
     preweights = exp.(-beta * (diag(sys.energy) + deltas))
-    weights = WeightVec(preweights .* Zas)
+    weights = Weights(preweights .* Zas)
 
     Cs = cosh.(sys.freq * tau)
     Ss = sinh.(sys.freq * tau)

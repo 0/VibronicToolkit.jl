@@ -3,7 +3,7 @@ module VibronicToolkit
 using Distributions: MvNormal, sample
 import JSON
 using ProgressMeter: @showprogress
-using StatsBase: WeightVec
+using StatsBase: Weights
 
 export
     System,
