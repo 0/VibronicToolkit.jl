@@ -5,9 +5,9 @@ System of `M` coupled harmonic oscillators (modes) across `S` surfaces.
 """
 immutable System{S,M}
     "Energy offsets (S, S)."
-    energy::Array{Float64,2}
+    energy::Matrix{Float64}
     "Frequencies (M, S)."
-    freq::Array{Float64,2}
+    freq::Matrix{Float64}
     "Linear prefactors (M, S, S)."
     lin::Array{Float64,3}
     "Quadratic prefactors (M, M, S, S)."

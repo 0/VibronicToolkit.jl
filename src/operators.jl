@@ -57,12 +57,12 @@ Position operator in `basis` for a single mode.
 q(basis::Basis) = (a(basis)' + a(basis)) / sqrt(2.0)
 
 """
-    mkop{S,M}(basis::Basis{S,M}, op::Array{Float64,2}, idx::Int)
+    mkop{S,M}(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int)
 
 Create a multi-mode operator in `basis` that is the tensor product of `op` at
 mode `idx` and the identity operator at all other modes.
 """
-function mkop{S,M}(basis::Basis{S,M}, op::Array{Float64,2}, idx::Int)
+function mkop{S,M}(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int)
     # Nothing to do for a single mode.
     M == 1 && return op
 

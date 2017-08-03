@@ -12,19 +12,19 @@ immutable SamplingParameters{S,M,P}
     "Surface weights."
     weights::WeightVec
     "Multivariate normal distributions."
-    mvns::Array{MvNormal,2}
+    mvns::Matrix{MvNormal}
 
     "Energy offsets due to linear terms."
-    deltas::Array{Float64,1}
+    deltas::Vector{Float64}
     "Position offsets due to linear terms."
-    ds::Array{Float64,2}
+    ds::Matrix{Float64}
 
     "Precomputed cosh factors."
-    Cs::Array{Float64,2}
+    Cs::Matrix{Float64}
     "Precomputed sinh factors."
-    Ss::Array{Float64,2}
+    Ss::Matrix{Float64}
     "Precomputed products of sinh factors."
-    S_prods::Array{Float64,1}
+    S_prods::Vector{Float64}
 end
 
 """
@@ -53,7 +53,7 @@ function SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
     Ss = sinh(sys.freq * tau)
     S_prods = Float64[prod(Ss[:, s]) for s in 1:S]
 
-    mvns = Array{MvNormal}(M, S)
+    mvns = Matrix{MvNormal}(M, S)
     for s in 1:S
         for m in 1:M
             mean = ds[m, s] * ones(P)
