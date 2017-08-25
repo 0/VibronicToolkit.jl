@@ -17,15 +17,25 @@ s.autofix_names = true
         help = "reciprocal temperature"
         arg_type = Float64
         required = true
+    "--uncoupled"
+        help = "remove coupling from system"
+        action = :store_true
 end
 c = parsed_args = parse_args(ARGS, s, as_symbols=true)
 
 sys = System(c[:conf])
 beta = c[:beta]
 
-analytical = Analytical(sys, beta)
 simple = Analytical(simplify(sys), beta)
 
-println("Z/Z: $(analytical.Z/simple.Z)")
-println("E: $(analytical.E)")
-println("Cv: $(analytical.Cv)")
+if c[:uncoupled]
+    println("Z: $(simple.Z)")
+    println("E: $(simple.E)")
+    println("Cv: $(simple.Cv)")
+else
+    analytical = Analytical(sys, beta)
+
+    println("Z/Z: $(analytical.Z/simple.Z)")
+    println("E: $(analytical.E)")
+    println("Cv: $(analytical.Cv)")
+end
