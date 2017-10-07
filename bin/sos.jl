@@ -23,7 +23,7 @@ s.autofix_names = true
         arg_type = Int
         required = true
 end
-c = parsed_args = parse_args(ARGS, s, as_symbols=true)
+c = parse_args(ARGS, s, as_symbols=true)
 
 sys = System(c[:conf])
 beta = c[:beta]

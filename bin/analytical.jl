@@ -21,7 +21,7 @@ s.autofix_names = true
         help = "remove coupling from system"
         action = :store_true
 end
-c = parsed_args = parse_args(ARGS, s, as_symbols=true)
+c = parse_args(ARGS, s, as_symbols=true)
 
 sys = System(c[:conf])
 beta = c[:beta]
