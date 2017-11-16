@@ -31,6 +31,7 @@ function Analytical{S,M}(sys::System{S,M}, beta::Float64)
         A = diagm(sys.freq[:, s].^2) + sys.quad[:, :, s, s] .* (freq_sqrt * freq_sqrt')
         issymmetric(A) || warn("Asymmetric A")
         eigen = eigfact(Symmetric(A))
+        any(eigen[:values] .< 0) && error("Imaginary normal mode frequencies")
         lambdas = sqrt.(eigen[:values])
         T = eigen[:vectors]'
         lin_pp = T * lin_p
