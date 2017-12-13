@@ -23,6 +23,8 @@ abstract type Solution end
 include("system.jl")
 include("operators.jl")
 
+include("jackknife.jl")
+
 include("analytical.jl")
 include("sos.jl")
 include("trotter.jl")

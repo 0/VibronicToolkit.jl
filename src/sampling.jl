@@ -91,8 +91,10 @@ function get_sample{S,M,P}(sp::SamplingParameters{S,M,P})
         qs[:, m] = rand(sp.mvns[m, s_])
     end
 
-    # Calculate the numerator and denominator matrices.
+    # Calculate the numerator, energy, heat capacity, and denominator matrices.
     num = eye(S)
+    num_Es = [eye(S) for _ in 1:P]
+    num_Cvs = [eye(S) for _ in 1:P]
     denom = eye(S)
 
     for i1 in 1:P
@@ -121,6 +123,35 @@ function get_sample{S,M,P}(sp::SamplingParameters{S,M,P})
         end
         IM = expm(Symmetric(-sp.tau * preIM))
 
+        # Energy and heat capacity estimator matrices.
+        EM1 = Symmetric(preIM)
+        EM2 = zeros(S, S)
+        if i1 == 1
+            CM1 = zeros(S, S)
+        end
+        for s in 1:S
+            EM2[s, s] -= sp.sys.energy[s, s] + sp.deltas[s]
+
+            for m in 1:M
+                q_disp1 = qs[i1, m] - sp.ds[m, s]
+                q_disp2 = qs[i2, m] - sp.ds[m, s]
+
+                EM2[s, s] -= sp.sys.freq[m, s] * 0.5 * sp.Cs[m, s] / sp.Ss[m, s]
+                EM2[s, s] -= sp.sys.freq[m, s] * q_disp1 * q_disp2 * sp.Cs[m, s] / sp.Ss[m, s]^2
+                EM2[s, s] += sp.sys.freq[m, s] * 0.5 * (q_disp1^2 + q_disp2^2) / sp.Ss[m, s]^2
+
+                if i1 == 1
+                    CM1[s, s] += sp.sys.freq[m, s]^2 * 0.5 / sp.Ss[m, s]^2
+                    CM1[s, s] += sp.sys.freq[m, s]^2 * 0.5 * q_disp1 * q_disp2 * (sp.Ss[m, s]^2 + sp.Cs[m, s]^2 + 3) / sp.Ss[m, s]^3
+                    CM1[s, s] -= sp.sys.freq[m, s]^2 * (q_disp1^2 + q_disp2^2) * sp.Cs[m, s] / sp.Ss[m, s]^3
+                end
+            end
+        end
+        EM = EM1 - EM2
+        if i1 == 1
+            CM = EM1 * EM + CM1 - EM * EM2
+        end
+
         # Free particle matrix.
         FM = zeros(S, S)
         for s in 1:S
@@ -137,11 +168,36 @@ function get_sample{S,M,P}(sp::SamplingParameters{S,M,P})
         end
         FM /= maximum(FM)
 
+        IFM = IM * FM
+        IEFM = IM * EM * FM
+
         num *= IM * FM
+        for i in 1:P
+            if i == i1
+                num_Es[i] *= IEFM
+                if i1 == 1
+                    num_Cvs[i] *= IM * CM * FM
+                else
+                    num_Cvs[i] *= IEFM
+                end
+            else
+                num_Es[i] *= IFM
+                if i1 == 1
+                    num_Cvs[i] *= IEFM
+                else
+                    num_Cvs[i] *= IFM
+                end
+            end
+        end
         denom *= FM
     end
 
-    trace(num) / trace(denom)
+    trace_num = trace(num)
+    trace_num_E = mean(trace(num_E) for num_E in num_Es)
+    trace_num_Cv = mean(trace(num_Cv) for num_Cv in num_Cvs)
+    trace_denom = trace(denom)
+
+    [trace_num/trace_denom, trace_num_E/trace_denom, trace_num_Cv/trace_denom]
 end
 
 """
@@ -152,6 +208,14 @@ struct Sampling <: Solution
     Z::Float64
     "Partition function standard error."
     Z_err::Float64
+    "Energy."
+    E::Float64
+    "Energy standard error."
+    E_err::Float64
+    "Heat capacity."
+    Cv::Float64
+    "Heat capacity standard error."
+    Cv_err::Float64
 end
 
 """
@@ -163,31 +227,37 @@ random samples.
 function Sampling{S,M}(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int)
     sp = SamplingParameters(sys, beta, P)
 
-    samples = zeros(num_samples)
+    samples = zeros(Float64, 3, num_samples)
+
     # zero, Inf, NaN
     problems = [false, false, false]
 
     @showprogress for n in 1:num_samples
-        samples[n] = get_sample(sp)
+        samples[:, n] = get_sample(sp)
 
-        if !problems[1] && samples[n] == 0.0
+        if !problems[1] && samples[1, n] == 0.0
             warn("\azero!")
             problems[1] = true
         end
 
-        if !problems[2] && samples[n] == Inf
+        if !problems[2] && any(samples[:, n] .== Inf)
             warn("\aInf!")
             problems[2] = true
         end
 
-        if !problems[3] && samples[n] != samples[n]
+        if !problems[3] && any(samples[:, n] .!= samples[:, n])
             warn("\aNaN!")
             problems[3] = true
         end
     end
 
-    Z = mean(samples)
-    Z_err = std(samples) / sqrt(length(samples))
+    f_E(samples, samples_E, samples_Cv) = samples_E ./ samples
+    f_Cv(samples, samples_E, samples_Cv) = (samples_Cv ./ samples - (samples_E ./ samples).^2) .* beta^2
 
-    Sampling(Z, Z_err)
+    Z = mean(samples[1, :])
+    Z_err = std(samples[1, :]) / sqrt(num_samples)
+    E, E_err = jackknife(f_E, [samples[n, :] for n in 1:size(samples, 1)]...)
+    Cv, Cv_err = jackknife(f_Cv, [samples[n, :] for n in 1:size(samples, 1)]...)
+
+    Sampling(Z, Z_err, E, E_err, Cv, Cv_err)
 end

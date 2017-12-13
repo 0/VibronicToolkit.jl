@@ -38,3 +38,5 @@ num_samples = c[:num_samples]
 sampling = Sampling(sys, beta, P, num_samples)
 
 println("Z/Z: $(sampling.Z) ± $(sampling.Z_err)")
+println("E: $(sampling.E) ± $(sampling.E_err)")
+println("Cv: $(sampling.Cv) ± $(sampling.Cv_err)")

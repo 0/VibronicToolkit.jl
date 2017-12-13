@@ -34,10 +34,10 @@ To use it without installing it (e.g. from a local git checkout), you'll need to
 
 ## Examples
 
-* `julia bin/analytical.jl --conf examples/s2m2_uncoupled.json --beta 123.45`
-* `julia bin/sos.jl --conf examples/s2m2_uncoupled.json --beta 123.45 --basis-size 30`
-* `julia bin/trotter.jl --conf examples/s2m2_uncoupled.json --beta 123.45 --basis-size 30 --num-links 200`
-* `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 123.45 --num-links 200 --num-samples 100000`
+* `julia bin/analytical.jl --conf examples/s2m2_uncoupled.json --beta 43.21`
+* `julia bin/sos.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30`
+* `julia bin/trotter.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30 --num-links 20`
+* `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000000`
 
 
 ## Acknowledgements
