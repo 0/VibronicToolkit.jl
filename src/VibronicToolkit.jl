@@ -13,7 +13,8 @@ export
     Analytical,
     SumOverStates,
     Trotter,
-    Sampling
+    SamplingFiniteDifference,
+    SamplingPrimitiveThermodynamic
 
 """
 Solution for vibronic problem.
@@ -28,6 +29,9 @@ include("jackknife.jl")
 include("analytical.jl")
 include("sos.jl")
 include("trotter.jl")
+
 include("sampling.jl")
+include("sampling_finite_difference.jl")
+include("sampling_primitive_thermodynamic.jl")
 
 end

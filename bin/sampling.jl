@@ -17,6 +17,10 @@ s.autofix_names = true
         help = "reciprocal temperature"
         arg_type = Float64
         required = true
+    "--dbeta"
+        metavar = "T"
+        help = "finite difference step (in units of beta)"
+        arg_type = Float64
     "--num-links"
         metavar = "P"
         help = "number of Trotter links"
@@ -32,10 +36,19 @@ c = parse_args(ARGS, s, as_symbols=true)
 
 sys = System(c[:conf])
 beta = c[:beta]
+if c[:dbeta] !== nothing
+    dbeta = c[:dbeta] * beta
+else
+    dbeta = nothing
+end
 P = c[:num_links]
 num_samples = c[:num_samples]
 
-sampling = Sampling(sys, beta, P, num_samples)
+if dbeta !== nothing
+    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples)
+else
+    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples)
+end
 
 println("Z/Z: $(sampling.Z) ± $(sampling.Z_err)")
 println("E: $(sampling.E) ± $(sampling.E_err)")
