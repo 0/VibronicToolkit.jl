@@ -40,7 +40,7 @@ function System(path)
             end
         end
     end
-    energy' == energy || error("Asymmetric energy")
+    all(isapprox.(energy, energy'; rtol=1e-12)) || error("Asymmetric energy")
 
     freq = zeros(M, S)
     # We repeat the frequency values over the surfaces.
@@ -65,7 +65,7 @@ function System(path)
             end
         end
     end
-    permutedims(lin, [1, 3, 2]) == lin || error("Asymmetric lin")
+    all(isapprox.(lin, permutedims(lin, [1, 3, 2]); rtol=1e-12)) || error("Asymmetric lin")
 
     quad = zeros(M, M, S, S)
     if haskey(data, "quadratic couplings")
@@ -83,7 +83,7 @@ function System(path)
             end
         end
     end
-    permutedims(quad, [1, 2, 4, 3]) == quad || error("Asymmetric quad")
+    all(isapprox.(quad, permutedims(quad, [1, 2, 4, 3]); rtol=1e-12)) || error("Asymmetric quad")
 
     System{S,M}(energy, freq, lin, quad)
 end
