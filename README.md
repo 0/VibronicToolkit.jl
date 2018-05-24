@@ -41,6 +41,13 @@ To use it without installing it (e.g. from a local git checkout), you'll need to
 * `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --dbeta 1e-4 --num-links 20 --num-samples 1000000`
 
 
+## Publications
+
+The following publications contain data created using this package:
+
+* Neil Raymond, Dmitri Iouchtchenko, Pierre-Nicholas Roy, and Marcel Nooijen. **A path integral methodology for obtaining thermodynamic properties of nonadiabatic systems using Gaussian mixture distributions.** The Journal of Chemical Physics 148, 194110 (2018). [doi:10.1063/1.5025058](https://aip.scitation.org/doi/abs/10.1063/1.5025058), [arXiv:1805.05971](https://arxiv.org/abs/1805.05971).
+
+
 ## Acknowledgements
 
 Thanks to Neil Raymond for designing the parameter file format and helping to verify this implementation!
