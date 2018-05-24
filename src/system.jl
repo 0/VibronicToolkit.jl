@@ -31,46 +31,54 @@ function System(path)
     M >= 1 || throw(DomainError())
 
     energy = zeros(S, S)
-    length(data["energies"]) == size(energy, 1) || error("Bad energy size")
-    for (idx1, data1) in enumerate(data["energies"])
-        length(data1) == size(energy, 2) || error("Bad energy size")
-        for (idx2, data2) in enumerate(data1)
-            energy[idx1, idx2] = data2
+    if haskey(data, "energies")
+        length(data["energies"]) == size(energy, 1) || error("Bad energy size")
+        for (idx1, data1) in enumerate(data["energies"])
+            length(data1) == size(energy, 2) || error("Bad energy size")
+            for (idx2, data2) in enumerate(data1)
+                energy[idx1, idx2] = data2
+            end
         end
     end
     energy' == energy || error("Asymmetric energy")
 
     freq = zeros(M, S)
     # We repeat the frequency values over the surfaces.
-    length(data["frequencies"]) == size(freq, 1) || error("Bad freq size")
-    for (idx1, data1) in enumerate(data["frequencies"])
-        freq[idx1, :] = data1
+    if haskey(data, "frequencies")
+        length(data["frequencies"]) == size(freq, 1) || error("Bad freq size")
+        for (idx1, data1) in enumerate(data["frequencies"])
+            freq[idx1, :] = data1
+        end
     end
     all(freq .> 0) || error("Nonpositive freq")
 
     lin = zeros(M, S, S)
-    length(data["linear coupling"]) == size(lin, 1) || error("Bad lin size")
-    for (idx1, data1) in enumerate(data["linear coupling"])
-        length(data1) == size(lin, 2) || error("Bad lin size")
-        for (idx2, data2) in enumerate(data1)
-            length(data2) == size(lin, 3) || error("Bad lin size")
-            for (idx3, data3) in enumerate(data2)
-                lin[idx1, idx2, idx3] = data3
+    if haskey(data, "linear coupling")
+        length(data["linear coupling"]) == size(lin, 1) || error("Bad lin size")
+        for (idx1, data1) in enumerate(data["linear coupling"])
+            length(data1) == size(lin, 2) || error("Bad lin size")
+            for (idx2, data2) in enumerate(data1)
+                length(data2) == size(lin, 3) || error("Bad lin size")
+                for (idx3, data3) in enumerate(data2)
+                    lin[idx1, idx2, idx3] = data3
+                end
             end
         end
     end
     permutedims(lin, [1, 3, 2]) == lin || error("Asymmetric lin")
 
     quad = zeros(M, M, S, S)
-    length(data["quadratic coupling"]) == size(quad, 1) || error("Bad quad size")
-    for (idx1, data1) in enumerate(data["quadratic coupling"])
-        length(data1) == size(quad, 2) || error("Bad quad size")
-        for (idx2, data2) in enumerate(data1)
-            length(data2) == size(quad, 3) || error("Bad quad size")
-            for (idx3, data3) in enumerate(data2)
-                length(data3) == size(quad, 4) || error("Bad quad size")
-                for (idx4, data4) in enumerate(data3)
-                    quad[idx1, idx2, idx3, idx4] = data4
+    if haskey(data, "quadratic coupling")
+        length(data["quadratic coupling"]) == size(quad, 1) || error("Bad quad size")
+        for (idx1, data1) in enumerate(data["quadratic coupling"])
+            length(data1) == size(quad, 2) || error("Bad quad size")
+            for (idx2, data2) in enumerate(data1)
+                length(data2) == size(quad, 3) || error("Bad quad size")
+                for (idx3, data3) in enumerate(data2)
+                    length(data3) == size(quad, 4) || error("Bad quad size")
+                    for (idx4, data4) in enumerate(data3)
+                        quad[idx1, idx2, idx3, idx4] = data4
+                    end
                 end
             end
         end
