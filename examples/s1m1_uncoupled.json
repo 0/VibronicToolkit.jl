@@ -5,12 +5,12 @@
         [0.01]
     ],
     "frequencies": [0.03],
-    "linear coupling": [
+    "linear couplings": [
         [
             [0.001]
         ]
     ],
-    "quadratic coupling": [
+    "quadratic couplings": [
         [
             [
                 [0.0005]
