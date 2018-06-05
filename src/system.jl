@@ -88,6 +88,22 @@ function System(path)
     System{S,M}(energy, freq, lin, quad)
 end
 
+function JSON.lower{S,M}(sys::System{S,M})
+    result = Dict()
+
+    result["number of surfaces"] = S
+    result["number of modes"] = M
+
+    result["energies"] = sys.energy'
+    result["frequencies"] = sys.freq[:, 1]
+    result["linear couplings"] = permutedims(sys.lin, [3, 2, 1])
+    result["quadratic couplings"] = permutedims(sys.quad, [4, 3, 2, 1])
+
+    result
+end
+
+Base.write{S,M}(io::IO, sys::System{S,M}) = JSON.print(io, sys)
+
 """
     simplify{S,M}(sys::System{S,M})
 
