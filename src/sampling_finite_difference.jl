@@ -84,7 +84,7 @@ end
 Monte Carlo solution for an arbitrary system using finite difference
 estimators.
 """
-struct SamplingFiniteDifference <: Solution
+struct SamplingFiniteDifference <: Sampling
     "Partition function."
     Z::Float64
     "Partition function standard error."

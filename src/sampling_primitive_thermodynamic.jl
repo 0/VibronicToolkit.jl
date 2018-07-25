@@ -128,7 +128,7 @@ end
 Monte Carlo solution for an arbitrary system using primitive thermodynamic
 estimators.
 """
-struct SamplingPrimitiveThermodynamic <: Solution
+struct SamplingPrimitiveThermodynamic <: Sampling
     "Partition function."
     Z::Float64
     "Partition function standard error."
