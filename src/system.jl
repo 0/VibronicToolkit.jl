@@ -34,9 +34,14 @@ function System(path)
     if haskey(data, "energies")
         length(data["energies"]) == size(energy, 1) || error("Bad energy size")
         for (idx1, data1) in enumerate(data["energies"])
-            length(data1) == size(energy, 2) || error("Bad energy size")
-            for (idx2, data2) in enumerate(data1)
-                energy[idx1, idx2] = data2
+            if length(data1) == 1
+                energy[idx1, idx1] = data1[1]
+            elseif length(data1) == size(energy, 2)
+                for (idx2, data2) in enumerate(data1)
+                    energy[idx1, idx2] = data2
+                end
+            else
+                error("Bad energy size")
             end
         end
     end
@@ -58,9 +63,14 @@ function System(path)
         for (idx1, data1) in enumerate(data["linear couplings"])
             length(data1) == size(lin, 2) || error("Bad lin size")
             for (idx2, data2) in enumerate(data1)
-                length(data2) == size(lin, 3) || error("Bad lin size")
-                for (idx3, data3) in enumerate(data2)
-                    lin[idx1, idx2, idx3] = data3
+                if length(data2) == 1
+                    lin[idx1, idx2, idx2] = data2[1]
+                elseif length(data2) == size(lin, 3)
+                    for (idx3, data3) in enumerate(data2)
+                        lin[idx1, idx2, idx3] = data3
+                    end
+                else
+                    error("Bad lin size")
                 end
             end
         end
@@ -75,9 +85,14 @@ function System(path)
             for (idx2, data2) in enumerate(data1)
                 length(data2) == size(quad, 3) || error("Bad quad size")
                 for (idx3, data3) in enumerate(data2)
-                    length(data3) == size(quad, 4) || error("Bad quad size")
-                    for (idx4, data4) in enumerate(data3)
-                        quad[idx1, idx2, idx3, idx4] = data4
+                    if length(data3) == 1
+                        quad[idx1, idx2, idx3, idx3] = data3[1]
+                    elseif length(data3) == size(quad, 4)
+                        for (idx4, data4) in enumerate(data3)
+                            quad[idx1, idx2, idx3, idx4] = data4
+                        end
+                    else
+                        error("Bad quad size")
                     end
                 end
             end
