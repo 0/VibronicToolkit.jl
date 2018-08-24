@@ -23,12 +23,10 @@ function System(path)
     data = JSON.parsefile(path)
 
     S = data["number of surfaces"]
-    # At least 1 surface.
-    S >= 1 || throw(DomainError())
+    S >= 1 || throw(DomainError(S, "At least 1 surface."))
 
     M = data["number of modes"]
-    # At least 1 mode.
-    M >= 1 || throw(DomainError())
+    M >= 1 || throw(DomainError(M, "At least 1 mode."))
 
     energy = zeros(S, S)
     if haskey(data, "energies")
@@ -45,14 +43,14 @@ function System(path)
             end
         end
     end
-    all(isapprox.(energy, energy'; rtol=1e-12)) || error("Asymmetric energy")
+    all(isapprox.(energy, permutedims(energy); rtol=1e-12)) || error("Asymmetric energy")
 
     freq = zeros(M, S)
     # We repeat the frequency values over the surfaces.
     if haskey(data, "frequencies")
         length(data["frequencies"]) == size(freq, 1) || error("Bad freq size")
         for (idx1, data1) in enumerate(data["frequencies"])
-            freq[idx1, :] = data1
+            freq[idx1, :] .= data1
         end
     end
     all(freq .> 0) || error("Nonpositive freq")
@@ -103,13 +101,13 @@ function System(path)
     System{S,M}(energy, freq, lin, quad)
 end
 
-function JSON.lower{S,M}(sys::System{S,M})
+function JSON.lower(sys::System{S,M}) where {S,M}
     result = Dict()
 
     result["number of surfaces"] = S
     result["number of modes"] = M
 
-    result["energies"] = sys.energy'
+    result["energies"] = permutedims(sys.energy)
     result["frequencies"] = sys.freq[:, 1]
     result["linear couplings"] = permutedims(sys.lin, [3, 2, 1])
     result["quadratic couplings"] = permutedims(sys.quad, [4, 3, 2, 1])
@@ -117,31 +115,31 @@ function JSON.lower{S,M}(sys::System{S,M})
     result
 end
 
-Base.write{S,M}(io::IO, sys::System{S,M}) = JSON.print(io, sys)
+Base.write(io::IO, sys::System{S,M}) where {S,M} = JSON.print(io, sys)
 
 """
-    simplify{S,M}(sys::System{S,M})
+    simplify(sys::System{S,M})
 
 Generate a simplified version of `sys` with no quadratic coupling and no
 inter-surface linear coupling.
 """
-function simplify{S,M}(sys::System{S,M})
-    energy_new = diagm(diag(sys.energy))
+function simplify(sys::System{S,M}) where {S,M}
+    energy_new = Diagonal(sys.energy)
 
-    lin_new = zeros(sys.lin)
+    lin_new = zero(sys.lin)
     for s in 1:S
         lin_new[:, s, s] .= sys.lin[:, s, s]
     end
 
-    System{S,M}(energy_new, sys.freq, lin_new, zeros(sys.quad))
+    System{S,M}(energy_new, sys.freq, lin_new, zero(sys.quad))
 end
 
 """
-    is_coupled{S,M}(sys::System{S,M})
+    is_coupled(sys::System{S,M})
 
 Whether `sys` has coupling between surfaces.
 """
-function is_coupled{S,M}(sys::System{S,M})
+function is_coupled(sys::System{S,M}) where {S,M}
     isdiag(sys.energy) || return true
 
     for m in 1:M

@@ -13,20 +13,19 @@ struct SumOverStates <: Solution
 end
 
 """
-    SumOverStates{S,M}(sys::System{S,M}, beta::Float64, basis_size::Int)
+    SumOverStates(sys::System{S,M}, beta::Float64, basis_size::Int)
 
 Calculate the solution for `sys` at `beta` with `basis_size` basis functions.
 """
-function SumOverStates{S,M}(sys::System{S,M}, beta::Float64, basis_size::Int)
+function SumOverStates(sys::System{S,M}, beta::Float64, basis_size::Int) where {S,M}
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 
-    eigen = eigfact(Symmetric(h0 + V))
-    Es = eigen[:values]
+    Es = eigvals(Symmetric(h0 + V))
 
     Z = sum(exp.(-beta * Es))
     E = sum(exp.(-beta * Es) .* Es) / Z
-    Cv = sum(exp.(-beta * Es) .* (Es - E).^2) / Z * beta^2
+    Cv = sum(exp.(-beta * Es) .* (Es .- E).^2) / Z * beta^2
 
     SumOverStates(Z, E, Cv)
 end

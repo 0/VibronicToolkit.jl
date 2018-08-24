@@ -1,6 +1,5 @@
 #!/usr/bin/env julia
 
-push!(LOAD_PATH, joinpath(dirname(@__FILE__), "../src"))
 using VibronicToolkit
 
 using ArgParse

@@ -13,27 +13,27 @@ struct Analytical <: Solution
 end
 
 """
-    Analytical{S,M}(sys::System{S,M}, beta::Float64)
+    Analytical(sys::System{S,M}, beta::Float64)
 
 Calculate the solution for `sys` at `beta`.
 """
-function Analytical{S,M}(sys::System{S,M}, beta::Float64)
+function Analytical(sys::System{S,M}, beta::Float64) where {S,M}
     is_coupled(sys) && error("Analytical solution only applies to uncoupled systems")
 
     Zs = exp.(-beta * diag(sys.energy))
-    E1s = zeros(Zs)
-    E2s = zeros(Zs)
+    E1s = zero(Zs)
+    E2s = zero(Zs)
 
     for s in 1:S
         # Find the normal mode frequencies for this surface.
         freq_sqrt = sqrt.(sys.freq[:, s])
         lin_p = sys.lin[:, s, s] .* freq_sqrt
-        A = diagm(sys.freq[:, s].^2) + sys.quad[:, :, s, s] .* (freq_sqrt * freq_sqrt')
-        issymmetric(A) || warn("Asymmetric A")
-        eigen = eigfact(Symmetric(A))
-        any(eigen[:values] .< 0) && error("Imaginary normal mode frequencies")
-        lambdas = sqrt.(eigen[:values])
-        T = eigen[:vectors]'
+        A = diagm(0 => sys.freq[:, s].^2) + sys.quad[:, :, s, s] .* (freq_sqrt * freq_sqrt')
+        issymmetric(A) || @warn "Asymmetric A"
+        F = eigen(Symmetric(A))
+        any(F.values .< 0) && error("Imaginary normal mode frequencies")
+        lambdas = sqrt.(F.values)
+        T = F.vectors'
         lin_pp = T * lin_p
 
         E_ = sys.energy[s, s]

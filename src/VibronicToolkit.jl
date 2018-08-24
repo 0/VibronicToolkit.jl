@@ -1,5 +1,9 @@
 module VibronicToolkit
 
+using LinearAlgebra: diag, diagm, Diagonal, eigen, eigvals, I, isdiag,
+                     issymmetric, Symmetric, tr
+using Statistics: mean, std
+
 using Distributions: MvNormal, sample
 import JSON
 using ProgressMeter: @showprogress

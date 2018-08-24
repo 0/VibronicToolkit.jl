@@ -28,11 +28,11 @@ struct SamplingParameters{S,M,P}
 end
 
 """
-    SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
+    SamplingParameters(sys::System{S,M}, beta::Float64, P::Int)
 
 Generate sampling parameters for `sys` at `beta` with `P` links.
 """
-function SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
+function SamplingParameters(sys::System{S,M}, beta::Float64, P::Int) where {S,M}
     tau = beta / P
 
     Zas = ones(S)
@@ -53,19 +53,19 @@ function SamplingParameters{S,M}(sys::System{S,M}, beta::Float64, P::Int)
     Ss = sinh.(sys.freq * tau)
     S_prods = Float64[prod(Ss[:, s]) for s in 1:S]
 
-    mvns = Matrix{MvNormal}(M, S)
+    mvns = Matrix{MvNormal}(undef, M, S)
     for s in 1:S
         for m in 1:M
             mean = ds[m, s] * ones(P)
 
             # Precision matrix.
-            prec = 2 * Cs[m, s] * eye(P) - diagm(ones(P-1), -1) - diagm(ones(P-1), 1)
+            prec = diagm(0 => 2 * Cs[m, s] * ones(P), -1 => -ones(P-1), 1 => -ones(P-1))
             prec[1, end] = -1.0
             prec[end, 1] = -1.0
 
             # Convariance matrix.
             cov = inv(prec / Ss[m, s])
-            maximum(abs.(cov' - cov)) < 1e-13 || warn("Asymmetric cov: $(maximum(abs.(cov' - cov)))")
+            maximum(abs.(cov' - cov)) < 1e-13 || @warn "Asymmetric cov: $(maximum(abs.(cov' - cov)))"
             # Force it to be symmetric.
             cov = (cov + cov') / 2
 

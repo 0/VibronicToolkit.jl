@@ -1,26 +1,21 @@
-# VibronicToolkit.jl
+# VibronicToolkit
 
 Tools for vibronic Hamiltonians.
 This package aims for correctness and readability rather than performance, so these tools are mainly useful for verifying other implementations.
 
-Tested with Julia 0.6.
+Tested with Julia 1.0.
 
 
 ## Installation
 
-1. `Pkg.clone("https://github.com/0/VibronicToolkit.jl.git")`
+```
+pkg> add https://github.com/0/VibronicToolkit.jl.git
+```
 
-
-### Requirements
-
-These should be pulled in automatically when installing this package.
-To use it without installing it (e.g. from a local git checkout), you'll need to manually obtain the following dependencies:
-
-* ArgParse (`Pkg.add("ArgParse")`)
-* Distributions (`Pkg.add("Distributions")`)
-* JSON (`Pkg.add("JSON")`)
-* ProgressMeter (`Pkg.add("ProgressMeter")`)
-* StatsBase (`Pkg.add("StatsBase")`)
+In order to run the driver scripts in `bin/`, you will also need to
+```
+pkg> add ArgParse
+```
 
 
 ## Units
@@ -33,6 +28,8 @@ To use it without installing it (e.g. from a local git checkout), you'll need to
 
 
 ## Examples
+
+To run the following examples, you should set the project (e.g. using `--project` or `JULIA_PROJECT`) to a Julia project that has the prerequisites installed.
 
 * `julia bin/analytical.jl --conf examples/s2m2_uncoupled.json --beta 43.21`
 * `julia bin/sos.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30`

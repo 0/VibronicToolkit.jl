@@ -9,12 +9,11 @@ This uses the formulas from Peter Young's notes
 (https://arxiv.org/abs/1210.3781, https://arxiv.org/pdf/1210.3781v3.pdf).
 """
 function jackknife(f, xss...)
-    # At least one data set.
-    length(xss) >= 1 || throw(DomainError())
+    length(xss) >= 1 || throw(DomainError(length(xss), "At least one data set."))
 
     N = length(xss[1])
-    # Uniform length.
-    all(length(xs) .== N for xs in xss) || throw(DomainError())
+    lengths = [length(xs) for xs in xss]
+    all(lengths .== N) || throw(DomainError(lengths, "Uniform length."))
 
     # Regular averages.
     xss_mean = Float64[]
@@ -25,7 +24,7 @@ function jackknife(f, xss...)
     # "All-but-one" averages.
     xss_J = Array{Float64,1}[]
     for xs in xss
-        push!(xss_J, (sum(xs) - xs) / (N - 1))
+        push!(xss_J, (sum(xs) .- xs) / (N - 1))
     end
 
     f_plain = f(xss_mean...)

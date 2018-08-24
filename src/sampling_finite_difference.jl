@@ -1,13 +1,12 @@
 # Monte Carlo solution with finite difference estimators.
 
 """
-    get_sample_fd{S,M,P}(sps::SamplingParameters{S,M,P}...)
+    get_sample_fd(sps::SamplingParameters{S,M,P}...)
 
 Compute a sample using `sps`.
 """
-function get_sample_fd{S,M,P}(sps::SamplingParameters{S,M,P}...)
-    # At least one set of parameters.
-    length(sps) >= 1 || throw(DomainError())
+function get_sample_fd(sps::SamplingParameters{S,M,P}...) where {S,M,P}
+    length(sps) >= 1 || throw(DomainError(length(sps), "At least one set of parameters."))
 
     # Choose a surface.
     s_ = sample(1:S, sps[1].weights)
@@ -15,7 +14,7 @@ function get_sample_fd{S,M,P}(sps::SamplingParameters{S,M,P}...)
     # Sample coordinates.
     qs = zeros(P, M)
     for m in 1:M
-        qs[:, m] = rand(sps[1].mvns[m, s_])
+        qs[:, m] .= rand(sps[1].mvns[m, s_])
     end
 
     traces_num = Float64[]
@@ -23,8 +22,8 @@ function get_sample_fd{S,M,P}(sps::SamplingParameters{S,M,P}...)
 
     for sp in sps
         # Calculate the numerator and denominator matrices.
-        num = eye(S)
-        denom = eye(S)
+        num = Matrix{Float64}(I, S, S)
+        denom = Matrix{Float64}(I, S, S)
 
         for i1 in 1:P
             # Next index in cyclic path.
@@ -50,7 +49,7 @@ function get_sample_fd{S,M,P}(sps::SamplingParameters{S,M,P}...)
                     end
                 end
             end
-            IM = expm(Symmetric(-sp.tau * preIM))
+            IM = exp(Symmetric(-sp.tau * preIM))
 
             # Free particle matrix.
             FM = zeros(S, S)
@@ -71,8 +70,8 @@ function get_sample_fd{S,M,P}(sps::SamplingParameters{S,M,P}...)
             denom *= FM
         end
 
-        push!(traces_num, trace(num))
-        push!(traces_denom, trace(denom))
+        push!(traces_num, tr(num))
+        push!(traces_denom, tr(denom))
     end
 
     [traces_num[1]/traces_denom[1],
@@ -100,12 +99,12 @@ struct SamplingFiniteDifference <: Sampling
 end
 
 """
-    SamplingFiniteDifference{S,M}(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int)
+    SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples, using finite difference step `dbeta`.
 """
-function SamplingFiniteDifference{S,M}(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int)
+function SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int) where {S,M}
     simple = Analytical(simplify(sys), beta)
     simple_m = Analytical(simplify(sys), beta-dbeta)
     simple_p = Analytical(simplify(sys), beta+dbeta)
@@ -123,31 +122,31 @@ function SamplingFiniteDifference{S,M}(sys::System{S,M}, beta::Float64, dbeta::F
     problems = [false, false, false]
 
     @showprogress for n in 1:num_samples
-        samples[:, n] = get_sample_fd(sp, sp_m, sp_p)
+        samples[:, n] .= get_sample_fd(sp, sp_m, sp_p)
 
         if !problems[1] && any(samples[:, n] .== 0.0)
-            warn("\azero!")
+            @warn "\azero!"
             problems[1] = true
         end
 
         if !problems[2] && any(samples[:, n] .== Inf)
-            warn("\aInf!")
+            @warn "\aInf!"
             problems[2] = true
         end
 
         if !problems[3] && any(samples[:, n] .!= samples[:, n])
-            warn("\aNaN!")
+            @warn "\aNaN!"
             problems[3] = true
         end
     end
 
     f_E(samples, samples_m, samples_p) =
-        simple.E +
+        simple.E .+
         1.0/(2dbeta) * (Zrat_m * samples_m .- Zrat_p * samples_p) ./ samples
     f_Cv(samples, samples_m, samples_p) =
-        simple.Cv +
-        (1.0/dbeta^2 * (Zrat_m * samples_m .+ Zrat_p * samples_p) ./ samples -
-         2.0/dbeta^2 -
+        simple.Cv .+
+        (1.0/dbeta^2 * (Zrat_m * samples_m .+ Zrat_p * samples_p) ./ samples .-
+         2.0/dbeta^2 .-
          (E - simple.E)^2) * beta^2
 
     Z = mean(samples[1, :])

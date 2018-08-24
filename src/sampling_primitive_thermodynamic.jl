@@ -1,25 +1,25 @@
 # Monte Carlo solution with primitive thermodynamic estimators.
 
 """
-    get_sample_pt{S,M,P}(sp::SamplingParameters{S,M,P})
+    get_sample_pt(sp::SamplingParameters{S,M,P})
 
 Compute a sample using `sp`.
 """
-function get_sample_pt{S,M,P}(sp::SamplingParameters{S,M,P})
+function get_sample_pt(sp::SamplingParameters{S,M,P}) where {S,M,P}
     # Choose a surface.
     s_ = sample(1:S, sp.weights)
 
     # Sample coordinates.
     qs = zeros(P, M)
     for m in 1:M
-        qs[:, m] = rand(sp.mvns[m, s_])
+        qs[:, m] .= rand(sp.mvns[m, s_])
     end
 
     # Calculate the numerator, energy, heat capacity, and denominator matrices.
-    num = eye(S)
-    num_Es = [eye(S) for _ in 1:P]
-    num_Cvs = [eye(S) for _ in 1:P]
-    denom = eye(S)
+    num = Matrix{Float64}(I, S, S)
+    num_Es = [Matrix{Float64}(I, S, S) for _ in 1:P]
+    num_Cvs = [Matrix{Float64}(I, S, S) for _ in 1:P]
+    denom = Matrix{Float64}(I, S, S)
 
     for i1 in 1:P
         # Next index in cyclic path.
@@ -45,7 +45,7 @@ function get_sample_pt{S,M,P}(sp::SamplingParameters{S,M,P})
                 end
             end
         end
-        IM = expm(Symmetric(-sp.tau * preIM))
+        IM = exp(Symmetric(-sp.tau * preIM))
 
         # Energy and heat capacity estimator matrices.
         EM1 = Symmetric(preIM)
@@ -116,10 +116,10 @@ function get_sample_pt{S,M,P}(sp::SamplingParameters{S,M,P})
         denom *= FM
     end
 
-    trace_num = trace(num)
-    trace_num_E = mean(trace(num_E) for num_E in num_Es)
-    trace_num_Cv = mean(trace(num_Cv) for num_Cv in num_Cvs)
-    trace_denom = trace(denom)
+    trace_num = tr(num)
+    trace_num_E = mean(tr(num_E) for num_E in num_Es)
+    trace_num_Cv = mean(tr(num_Cv) for num_Cv in num_Cvs)
+    trace_denom = tr(denom)
 
     [trace_num/trace_denom, trace_num_E/trace_denom, trace_num_Cv/trace_denom]
 end
@@ -144,12 +144,12 @@ struct SamplingPrimitiveThermodynamic <: Sampling
 end
 
 """
-    SamplingPrimitiveThermodynamic{S,M}(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int)
+    SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples.
 """
-function SamplingPrimitiveThermodynamic{S,M}(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int)
+function SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int) where {S,M}
     sp = SamplingParameters(sys, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
@@ -158,20 +158,20 @@ function SamplingPrimitiveThermodynamic{S,M}(sys::System{S,M}, beta::Float64, P:
     problems = [false, false, false]
 
     @showprogress for n in 1:num_samples
-        samples[:, n] = get_sample_pt(sp)
+        samples[:, n] .= get_sample_pt(sp)
 
         if !problems[1] && samples[1, n] == 0.0
-            warn("\azero!")
+            @warn "\azero!"
             problems[1] = true
         end
 
         if !problems[2] && any(samples[:, n] .== Inf)
-            warn("\aInf!")
+            @warn "\aInf!"
             problems[2] = true
         end
 
         if !problems[3] && any(samples[:, n] .!= samples[:, n])
-            warn("\aNaN!")
+            @warn "\aNaN!"
             problems[3] = true
         end
     end

@@ -14,13 +14,12 @@ struct Basis{S,M}
 end
 
 """
-    Basis{S,M}(::System{S,M}, size::Int)
+    Basis(::System{S,M}, size::Int)
 
 Create a basis with `size` basis functions for a single mode.
 """
-function Basis{S,M}(::System{S,M}, size::Int)
-    # At least 1 basis function.
-    size >= 1 || throw(DomainError())
+function Basis(::System{S,M}, size::Int) where {S,M}
+    size >= 1 || throw(DomainError(size, "At least 1 basis function."))
 
     dim1 = size^M
     dim = S * dim1
@@ -33,21 +32,21 @@ end
 
 Identity operator in `basis` for a single mode.
 """
-id(basis::Basis) = eye(basis.size)
+id(basis::Basis) = Matrix{Float64}(I, basis.size, basis.size)
 
 """
     a(basis::Basis)
 
 Annihilation operator in `basis` for a single mode.
 """
-a(basis::Basis) = diagm(sqrt.(1.0:basis.size-1), 1)
+a(basis::Basis) = diagm(1 => sqrt.(1.0:basis.size-1))
 
 """
     n(basis::Basis)
 
 Number operator in `basis` for a single mode.
 """
-n(basis::Basis) = diagm(0.0:basis.size-1)
+n(basis::Basis) = diagm(0 => 0.0:basis.size-1)
 
 """
     q(basis::Basis)
@@ -57,12 +56,12 @@ Position operator in `basis` for a single mode.
 q(basis::Basis) = (a(basis)' + a(basis)) / sqrt(2.0)
 
 """
-    mkop{S,M}(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int)
+    mkop(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int)
 
 Create a multi-mode operator in `basis` that is the tensor product of `op` at
 mode `idx` and the identity operator at all other modes.
 """
-function mkop{S,M}(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int)
+function mkop(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int) where {S,M}
     # Nothing to do for a single mode.
     M == 1 && return op
 
@@ -76,33 +75,33 @@ function mkop{S,M}(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int)
     end
 
     result = kron(ops...)
-    size(result) == (basis.dim1, basis.dim1) || warn("Bad size in mkop")
+    size(result) == (basis.dim1, basis.dim1) || @warn "Bad size in mkop"
 
     result
 end
 
 """
-    mkop{S,M}(basis::Basis{S,M}, op, idx::Int)
+    mkop(basis::Basis{S,M}, op, idx::Int)
 
 Create a multi-mode operator in `basis` that is the tensor product of `op` at
 mode `idx` and the identity operator at all other modes, where `op` is a
 function that generates the operator in the basis.
 """
-mkop{S,M}(basis::Basis{S,M}, op, idx::Int) = mkop(basis, op(basis), idx)
+mkop(basis::Basis{S,M}, op, idx::Int) where {S,M} = mkop(basis, op(basis), idx)
 
 """
-    mkid{S,M}(basis::Basis{S,M})
+    mkid(basis::Basis{S,M})
 
 Create a multi-mode identity operator in `basis`.
 """
-mkid{S,M}(basis::Basis{S,M}) = mkop(basis, id(basis), 1)
+mkid(basis::Basis{S,M}) where {S,M} = mkop(basis, id(basis), 1)
 
 """
-    operators{S,M}(basis::Basis{S,M}, sys::System{S,M})
+    operators(basis::Basis{S,M}, sys::System{S,M})
 
 Create `h0` and `V` operators in `basis` for the system described by `sys`.
 """
-function operators{S,M}(basis::Basis{S,M}, sys::System{S,M})
+function operators(basis::Basis{S,M}, sys::System{S,M}) where {S,M}
     # It's simpler to populate the values into higher rank tensors.
     h0s = zeros(basis.dim1, basis.dim1, S, S)
     Vs = zeros(basis.dim1, basis.dim1, S, S)
@@ -110,26 +109,26 @@ function operators{S,M}(basis::Basis{S,M}, sys::System{S,M})
     for s1 in 1:S
         for s2 in 1:S
             if s1 == s2
-                h0s[:, :, s1, s1] += sys.energy[s1, s1] * mkid(basis)
+                h0s[:, :, s1, s1] .+= sys.energy[s1, s1] * mkid(basis)
 
                 for m in 1:M
-                    h0s[:, :, s1, s1] += sys.freq[m, s1] * (mkop(basis, n, m) + 0.5 * mkop(basis, id, m))
+                    h0s[:, :, s1, s1] .+= sys.freq[m, s1] * (mkop(basis, n, m) + 0.5 * mkop(basis, id, m))
                 end
             else
-                Vs[:, :, s2, s1] += sys.energy[s2, s1] * mkid(basis)
+                Vs[:, :, s2, s1] .+= sys.energy[s2, s1] * mkid(basis)
             end
 
             for m in 1:M
                 if s1 == s2
-                    h0s[:, :, s1, s1] += sys.lin[m, s1, s1] * mkop(basis, q, m)
+                    h0s[:, :, s1, s1] .+= sys.lin[m, s1, s1] * mkop(basis, q, m)
                 else
-                    Vs[:, :, s2, s1] += sys.lin[m, s2, s1] * mkop(basis, q, m)
+                    Vs[:, :, s2, s1] .+= sys.lin[m, s2, s1] * mkop(basis, q, m)
                 end
             end
 
             for m1 in 1:M
                 for m2 in 1:M
-                    Vs[:, :, s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * mkop(basis, q, m2) * mkop(basis, q, m1)
+                    Vs[:, :, s2, s1] .+= 0.5 * sys.quad[m2, m1, s2, s1] * mkop(basis, q, m2) * mkop(basis, q, m1)
                 end
             end
         end
@@ -137,9 +136,9 @@ function operators{S,M}(basis::Basis{S,M}, sys::System{S,M})
 
     # Flatten into matrices.
     h0 = reshape(permutedims(h0s, [1, 3, 2, 4]), (basis.dim, basis.dim))
-    maximum(abs.(h0' - h0)) < 1e-13 || warn("Asymmetric h0: $(maximum(abs.(h0' - h0)))")
+    maximum(abs.(h0' - h0)) < 1e-13 || @warn "Asymmetric h0: $(maximum(abs.(h0' - h0)))"
     V = reshape(permutedims(Vs, [1, 3, 2, 4]), (basis.dim, basis.dim))
-    maximum(abs.(V' - V)) < 1e-13 || warn("Asymmetric V: $(maximum(abs.(V' - V)))")
+    maximum(abs.(V' - V)) < 1e-13 || @warn "Asymmetric V: $(maximum(abs.(V' - V)))"
 
     h0, V
 end
