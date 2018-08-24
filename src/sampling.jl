@@ -11,19 +11,19 @@ struct SamplingParameters{S,M,P}
 
     "Surface weights."
     weights::Weights
-    "Multivariate normal distributions."
+    "Multivariate normal distributions (M, S)."
     mvns::Matrix{MvNormal}
 
-    "Energy offsets due to linear terms."
+    "Energy offsets due to linear terms (S)."
     deltas::Vector{Float64}
-    "Position offsets due to linear terms."
+    "Position offsets due to linear terms (M, S)."
     ds::Matrix{Float64}
 
-    "Precomputed cosh factors."
+    "Precomputed cosh factors (M, S)."
     Cs::Matrix{Float64}
-    "Precomputed sinh factors."
+    "Precomputed sinh factors (M, S)."
     Ss::Matrix{Float64}
-    "Precomputed products of sinh factors."
+    "Precomputed products of sinh factors (S)."
     S_prods::Vector{Float64}
 end
 
