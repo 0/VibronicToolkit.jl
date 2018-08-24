@@ -28,6 +28,10 @@ function System(path)
     M = data["number of modes"]
     M >= 1 || throw(DomainError(M, "At least 1 mode."))
 
+    for key in ["linear coupling", "quadratic coupling"]
+        haskey(data, key) && error("System file contains outdated key '$(key)'.")
+    end
+
     energy = zeros(S, S)
     if haskey(data, "energies")
         length(data["energies"]) == size(energy, 1) || error("Bad energy size")
