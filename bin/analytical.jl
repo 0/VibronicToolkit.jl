@@ -17,7 +17,7 @@ s.autofix_names = true
         arg_type = Float64
         required = true
     "--uncoupled"
-        help = "remove coupling from system"
+        help = "remove inter-surface and quadratic coupling from system"
         action = :store_true
 end
 c = parse_args(ARGS, s, as_symbols=true)
