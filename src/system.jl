@@ -30,6 +30,22 @@ include("system_dense.jl")
 include("system_diagonal.jl")
 include("system_io.jl")
 
+function Base.:(==)(sys1::System{S,M}, sys2::System{S,M}) where {S,M}
+    sys1.energy == sys2.energy || return false
+    sys1.freq == sys2.freq || return false
+    sys1.lin == sys2.lin || return false
+    sys1.quad == sys2.quad || return false
+    true
+end
+
+function Base.isapprox(sys1::System{S,M}, sys2::System{S,M}; kwargs...) where {S,M}
+    isapprox(sys1.energy, sys2.energy; kwargs...) || return false
+    isapprox(sys1.freq, sys2.freq; kwargs...) || return false
+    isapprox(sys1.lin, sys2.lin; kwargs...) || return false
+    isapprox(sys1.quad, sys2.quad; kwargs...) || return false
+    true
+end
+
 """
     DenseSystem(sys::DiagonalSystem{S,M})
 
