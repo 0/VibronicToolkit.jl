@@ -99,12 +99,14 @@ struct SamplingFiniteDifference <: Sampling
 end
 
 """
-    SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int)
+    SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples, using finite difference step `dbeta`.
+
+The progress meter is written to `progress_output`.
 """
-function SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int) where {S,M}
+function SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr) where {S,M}
     simple = Analytical(simplify(diag(sys)), beta)
     simple_m = Analytical(simplify(diag(sys)), beta-dbeta)
     simple_p = Analytical(simplify(diag(sys)), beta+dbeta)
@@ -121,7 +123,8 @@ function SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float6
     # zero, Inf, NaN
     problems = [false, false, false]
 
-    @showprogress for n in 1:num_samples
+    meter = Progress(num_samples, output=progress_output)
+    for n in ProgressWrapper(1:num_samples, meter)
         samples[:, n] .= get_sample_fd(sp, sp_m, sp_p)
 
         if !problems[1] && any(samples[:, n] .== 0.0)

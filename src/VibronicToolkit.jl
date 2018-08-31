@@ -8,7 +8,7 @@ using Statistics: mean, std
 
 using Distributions: MvNormal, sample
 import JSON
-using ProgressMeter: @showprogress
+using ProgressMeter: Progress, ProgressWrapper
 using StatsBase: Weights
 
 # We re-export diag and isdiag from LinearAlgebra.

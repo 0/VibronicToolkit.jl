@@ -144,12 +144,14 @@ struct SamplingPrimitiveThermodynamic <: Sampling
 end
 
 """
-    SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int)
+    SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples.
+
+The progress meter is written to `progress_output`.
 """
-function SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int) where {S,M}
+function SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr) where {S,M}
     sp = SamplingParameters(sys, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
@@ -157,7 +159,8 @@ function SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int,
     # zero, Inf, NaN
     problems = [false, false, false]
 
-    @showprogress for n in 1:num_samples
+    meter = Progress(num_samples, output=progress_output)
+    for n in ProgressWrapper(1:num_samples, meter)
         samples[:, n] .= get_sample_pt(sp)
 
         if !problems[1] && samples[1, n] == 0.0
