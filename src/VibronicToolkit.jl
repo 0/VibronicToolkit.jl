@@ -3,6 +3,7 @@ module VibronicToolkit
 import LinearAlgebra: diag, isdiag
 using LinearAlgebra: diagm, Diagonal, eigen, eigvals, I, issymmetric,
                      Symmetric, tr
+using Printf: @printf
 using Statistics: mean, std
 
 using Distributions: MvNormal, sample

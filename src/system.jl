@@ -28,8 +28,7 @@ function isdiag end
 
 include("system_dense.jl")
 include("system_diagonal.jl")
-
-Base.write(io::IO, sys::System{S,M}) where {S,M} = JSON.print(io, sys)
+include("system_io.jl")
 
 """
     DenseSystem(sys::DiagonalSystem{S,M})

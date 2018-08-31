@@ -24,7 +24,7 @@ s.autofix_names = true
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
-sys = DenseSystem(c[:conf])
+sys = read(c[:conf], DenseSystem)
 beta = c[:beta]
 basis_size = c[:basis_size]
 

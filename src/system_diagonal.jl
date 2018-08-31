@@ -26,30 +26,6 @@ struct DiagonalSystem{S,M} <: System{S,M}
     end
 end
 
-"""
-    DiagonalSystem(path::AbstractString)
-
-Create a diagonal system from the JSON description in the file at `path`.
-
-If there is any coupling between surfaces, `SurfaceCouplingException` is
-thrown.
-"""
-DiagonalSystem(path::AbstractString) = path |> DenseSystem |> DiagonalSystem
-
 diag(sys::DiagonalSystem{S,M}) where {S,M} = sys
 
 isdiag(sys::DiagonalSystem{S,M}) where {S,M} = true
-
-function JSON.lower(sys::DiagonalSystem{S,M}) where {S,M}
-    result = Dict()
-
-    result["number of surfaces"] = S
-    result["number of modes"] = M
-
-    result["energies"] = diag(sys.energy)
-    result["frequencies"] = sys.freq[:, 1]
-    result["linear couplings"] = permutedims(diag(sys.lin, 2, 3))
-    result["quadratic couplings"] = permutedims(diag(sys.quad, 3, 4), [3, 2, 1])
-
-    result
-end
