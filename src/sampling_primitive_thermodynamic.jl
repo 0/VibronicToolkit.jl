@@ -25,72 +25,14 @@ function get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P}) where {S
         # Next index in cyclic path.
         i2 = i1%P+1
 
-        # Interaction matrix.
-        preIM = zeros(S, S)
-        for s1 in 1:S
-            # Only build the upper triangle.
-            for s2 in 1:s1
-                if s1 != s2
-                    preIM[s2, s1] += sys.energy[s2, s1]
-
-                    for m in 1:M
-                        preIM[s2, s1] += sys.lin[m, s2, s1] * qs[i1, m]
-                    end
-                end
-
-                for m1 in 1:M
-                    for m2 in 1:M
-                        preIM[s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * qs[i1, m2] * qs[i1, m1]
-                    end
-                end
-            end
-        end
-        IM = exp(Symmetric(-sp.tau * preIM))
-
-        # Energy and heat capacity estimator matrices.
-        EM1 = Symmetric(preIM)
-        EM2 = zeros(S, S)
-        if i1 == 1
-            CM1 = zeros(S, S)
-        end
-        for s in 1:S
-            EM2[s, s] -= sp.sys.energy[s, s] + sp.sys.deltas[s]
-
-            for m in 1:M
-                q_disp1 = qs[i1, m] - sp.sys.ds[m, s]
-                q_disp2 = qs[i2, m] - sp.sys.ds[m, s]
-
-                EM2[s, s] -= sp.sys.freq[m, s] * 0.5 * sp.Cs[m, s] / sp.Ss[m, s]
-                EM2[s, s] -= sp.sys.freq[m, s] * q_disp1 * q_disp2 * sp.Cs[m, s] / sp.Ss[m, s]^2
-                EM2[s, s] += sp.sys.freq[m, s] * 0.5 * (q_disp1^2 + q_disp2^2) / sp.Ss[m, s]^2
-
-                if i1 == 1
-                    CM1[s, s] += sp.sys.freq[m, s]^2 * 0.5 / sp.Ss[m, s]^2
-                    CM1[s, s] += sp.sys.freq[m, s]^2 * 0.5 * q_disp1 * q_disp2 * (sp.Ss[m, s]^2 + sp.Cs[m, s]^2 + 3) / sp.Ss[m, s]^3
-                    CM1[s, s] -= sp.sys.freq[m, s]^2 * (q_disp1^2 + q_disp2^2) * sp.Cs[m, s] / sp.Ss[m, s]^3
-                end
-            end
-        end
+        FM, _ = sampling_matrix_free_particle(sp, qs[i1, :], qs[i2, :])
+        EM1, IM = sampling_matrix_interaction(sys, sp, qs[i1, :])
+        EM2 = sampling_matrix_energy(sp, qs[i1, :], qs[i2, :])
         EM = EM1 - EM2
         if i1 == 1
+            CM1 = sampling_matrix_heat_capacity(sp, qs[i1, :], qs[i2, :])
             CM = EM1 * EM + CM1 - EM * EM2
         end
-
-        # Free particle matrix.
-        FM = zeros(S, S)
-        for s in 1:S
-            x = -sp.tau * (sp.sys.energy[s, s] + sp.sys.deltas[s])
-
-            for m in 1:M
-                q_disp1 = qs[i1, m] - sp.sys.ds[m, s]
-                q_disp2 = qs[i2, m] - sp.sys.ds[m, s]
-
-                x += -0.5 * ((q_disp1^2 + q_disp2^2) * sp.Cs[m, s] - 2 * q_disp1 * q_disp2) / sp.Ss[m, s]
-            end
-
-            FM[s, s] += exp(x) / sqrt(sp.S_prods[s])
-        end
-        FM /= maximum(FM)
 
         IFM = IM * FM
         IEFM = IM * EM * FM

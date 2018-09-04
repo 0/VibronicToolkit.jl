@@ -81,3 +81,68 @@ end
 Monte Carlo solution for an arbitrary system.
 """
 abstract type Sampling <: Solution end
+
+function sampling_matrix_free_particle(sp::SamplingParameters{S,M,P}, qs1::Vector{Float64}, qs2::Vector{Float64}; scaling=nothing) where {S,M,P}
+    FM = zeros(S, S)
+    for s in 1:S
+        x = -sp.tau * (sp.sys.energy[s, s] + sp.sys.deltas[s])
+        for m in 1:M
+            q_disp1 = qs1[m] - sp.sys.ds[m, s]
+            q_disp2 = qs2[m] - sp.sys.ds[m, s]
+            x += -0.5 * ((q_disp1^2 + q_disp2^2) * sp.Cs[m, s] - 2 * q_disp1 * q_disp2) / sp.Ss[m, s]
+        end
+        FM[s, s] += exp(x) / sqrt(sp.S_prods[s])
+    end
+    scaling === nothing && (scaling = maximum(FM))
+    FM/scaling, scaling
+end
+
+function sampling_matrix_interaction(sys::System{S,M}, sp::SamplingParameters{S,M,P}, qs::Vector{Float64}) where {S,M,P}
+    preIM = zeros(S, S)
+    for s1 in 1:S
+        # Only build the upper triangle.
+        for s2 in 1:s1
+            if s1 != s2
+                preIM[s2, s1] += sys.energy[s2, s1]
+                for m in 1:M
+                    preIM[s2, s1] += sys.lin[m, s2, s1] * qs[m]
+                end
+            end
+            for m1 in 1:M
+                for m2 in 1:M
+                    preIM[s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
+                end
+            end
+        end
+    end
+    Symmetric(preIM), exp(Symmetric(-sp.tau * preIM))
+end
+
+function sampling_matrix_energy(sp::SamplingParameters{S,M,P}, qs1::Vector{Float64}, qs2::Vector{Float64}) where {S,M,P}
+    EM2 = zeros(S, S)
+    for s in 1:S
+        EM2[s, s] -= sp.sys.energy[s, s] + sp.sys.deltas[s]
+        for m in 1:M
+            q_disp1 = qs1[m] - sp.sys.ds[m, s]
+            q_disp2 = qs2[m] - sp.sys.ds[m, s]
+            EM2[s, s] -= sp.sys.freq[m, s] * 0.5 * sp.Cs[m, s] / sp.Ss[m, s]
+            EM2[s, s] -= sp.sys.freq[m, s] * q_disp1 * q_disp2 * sp.Cs[m, s] / sp.Ss[m, s]^2
+            EM2[s, s] += sp.sys.freq[m, s] * 0.5 * (q_disp1^2 + q_disp2^2) / sp.Ss[m, s]^2
+        end
+    end
+    EM2
+end
+
+function sampling_matrix_heat_capacity(sp::SamplingParameters{S,M,P}, qs1::Vector{Float64}, qs2::Vector{Float64}) where {S,M,P}
+    CM1 = zeros(S, S)
+    for s in 1:S
+        for m in 1:M
+            q_disp1 = qs1[m] - sp.sys.ds[m, s]
+            q_disp2 = qs2[m] - sp.sys.ds[m, s]
+            CM1[s, s] += sp.sys.freq[m, s]^2 * 0.5 / sp.Ss[m, s]^2
+            CM1[s, s] += sp.sys.freq[m, s]^2 * 0.5 * q_disp1 * q_disp2 * (sp.Ss[m, s]^2 + sp.Cs[m, s]^2 + 3) / sp.Ss[m, s]^3
+            CM1[s, s] -= sp.sys.freq[m, s]^2 * (q_disp1^2 + q_disp2^2) * sp.Cs[m, s] / sp.Ss[m, s]^3
+        end
+    end
+    CM1
+end
