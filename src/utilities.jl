@@ -22,3 +22,27 @@ function diag(A::Array{T,N}, dim1::Int, dim2::Int) where {T,N}
 
     result
 end
+
+function show_value(io::IO, x::Float64)
+    if x == 0.0
+        print(io, "    .          ")
+    else
+        @printf(io, "% 15.10f", x)
+    end
+    nothing
+end
+
+function show_vector(io::IO, xs::Vector{Float64})
+    for i in 1:length(xs)
+        show_value(io, xs[i])
+    end
+    println(io)
+    nothing
+end
+
+function show_matrix(io::IO, xs::Matrix{Float64})
+    for i in 1:size(xs, 2)
+        show_vector(io, xs[:, i])
+    end
+    nothing
+end

@@ -124,30 +124,6 @@ function JSON.lower(sys::DiagonalSystem{S,M}) where {S,M}
     result
 end
 
-function show_value(io::IO, x::Float64)
-    if x == 0.0
-        print(io, "    .          ")
-    else
-        @printf(io, "% 15.10f", x)
-    end
-    nothing
-end
-
-function show_vector(io::IO, xs::Vector{Float64})
-    for i in 1:length(xs)
-        show_value(io, xs[i])
-    end
-    println(io)
-    nothing
-end
-
-function show_matrix(io::IO, xs::Matrix{Float64})
-    for i in 1:size(xs, 2)
-        show_vector(io, xs[:, i])
-    end
-    nothing
-end
-
 function show_tensors(io::IO, sys::System{S,M}) where {S,M}
     if !iszero(sys.energy)
         println(io, "energies:")
@@ -195,5 +171,12 @@ function Base.show(io::IO, sys::DiagonalSystem{S,M}) where {S,M}
     println(io, typeof(sys))
     println(io, "Diagonal system with $(S) surface$(S == 1 ? "" : "s") and $(M) mode$(M == 1 ? "" : "s").")
     show_tensors(io, sys)
+    println(io, "energy offsets:")
+    show_vector(io, sys.deltas)
+    println(io, "position offsets:")
+    for m in 1:M
+        println(io, " mode $(m)")
+        show_vector(io, sys.ds[m, :])
+    end
     nothing
 end

@@ -110,3 +110,10 @@ Generate a simplified version of `sys` with no quadratic coupling.
 function simplify(sys::T) where {T<:System}
     T(sys.energy, sys.freq, sys.lin, zero(sys.quad))
 end
+
+"""
+    issimple(sys::System)
+
+Determine whether `sys` is simple (has no quadratic coupling).
+"""
+issimple(sys::System) = iszero(sys.quad)

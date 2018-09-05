@@ -1,11 +1,11 @@
 # Monte Carlo solution with finite difference estimators.
 
 """
-    get_sample_fd(sps::SamplingParameters{S,M,P}...)
+    get_sample_fd(sys::System{S,M}, sps::SamplingParameters{S,M,P}...)
 
-Compute a sample using `sps`.
+Compute a sample for `sys` using `sps`.
 """
-function get_sample_fd(sps::SamplingParameters{S,M,P}...) where {S,M,P}
+function get_sample_fd(sys::System{S,M}, sps::SamplingParameters{S,M,P}...) where {S,M,P}
     length(sps) >= 1 || throw(DomainError(length(sps), "At least one set of parameters."))
 
     # Choose a surface.
@@ -35,16 +35,16 @@ function get_sample_fd(sps::SamplingParameters{S,M,P}...) where {S,M,P}
                 # Only build the upper triangle.
                 for s2 in 1:s1
                     if s1 != s2
-                        preIM[s2, s1] += sp.sys.energy[s2, s1]
+                        preIM[s2, s1] += sys.energy[s2, s1]
 
                         for m in 1:M
-                            preIM[s2, s1] += sp.sys.lin[m, s2, s1] * qs[i1, m]
+                            preIM[s2, s1] += sys.lin[m, s2, s1] * qs[i1, m]
                         end
                     end
 
                     for m1 in 1:M
                         for m2 in 1:M
-                            preIM[s2, s1] += 0.5 * sp.sys.quad[m2, m1, s2, s1] * qs[i1, m2] * qs[i1, m1]
+                            preIM[s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * qs[i1, m2] * qs[i1, m1]
                         end
                     end
                 end
@@ -54,11 +54,11 @@ function get_sample_fd(sps::SamplingParameters{S,M,P}...) where {S,M,P}
             # Free particle matrix.
             FM = zeros(S, S)
             for s in 1:S
-                x = -sp.tau * (sp.sys.energy[s, s] + sp.deltas[s])
+                x = -sp.tau * (sp.sys.energy[s, s] + sp.sys.deltas[s])
 
                 for m in 1:M
-                    q_disp1 = qs[i1, m] - sp.ds[m, s]
-                    q_disp2 = qs[i2, m] - sp.ds[m, s]
+                    q_disp1 = qs[i1, m] - sp.sys.ds[m, s]
+                    q_disp2 = qs[i2, m] - sp.sys.ds[m, s]
 
                     x += -0.5 * ((q_disp1^2 + q_disp2^2) * sp.Cs[m, s] - 2 * q_disp1 * q_disp2) / sp.Ss[m, s]
                 end
@@ -107,16 +107,19 @@ random samples, using finite difference step `dbeta`.
 The progress meter is written to `progress_output`.
 """
 function SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr) where {S,M}
-    simple = Analytical(simplify(diag(sys)), beta)
-    simple_m = Analytical(simplify(diag(sys)), beta-dbeta)
-    simple_p = Analytical(simplify(diag(sys)), beta+dbeta)
+    sys_diag = diag(sys)
+    sys_diag_simple = simplify(sys_diag)
+
+    simple = Analytical(sys_diag_simple, beta)
+    simple_m = Analytical(sys_diag_simple, beta-dbeta)
+    simple_p = Analytical(sys_diag_simple, beta+dbeta)
 
     Zrat_m = simple.Z / simple_m.Z
     Zrat_p = simple.Z / simple_p.Z
 
-    sp = SamplingParameters(sys, beta, P)
-    sp_m = SamplingParameters(sys, beta-dbeta, P)
-    sp_p = SamplingParameters(sys, beta+dbeta, P)
+    sp = SamplingParameters(sys_diag_simple, beta, P)
+    sp_m = SamplingParameters(sys_diag_simple, beta-dbeta, P)
+    sp_p = SamplingParameters(sys_diag_simple, beta+dbeta, P)
 
     samples = zeros(Float64, 3, num_samples)
 
@@ -125,7 +128,7 @@ function SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float6
 
     meter = Progress(num_samples, output=progress_output)
     for n in ProgressWrapper(1:num_samples, meter)
-        samples[:, n] .= get_sample_fd(sp, sp_m, sp_p)
+        samples[:, n] .= get_sample_fd(sys, sp, sp_m, sp_p)
 
         if !problems[1] && any(samples[:, n] .== 0.0)
             @warn "\azero!"

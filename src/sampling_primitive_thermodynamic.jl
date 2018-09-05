@@ -1,11 +1,11 @@
 # Monte Carlo solution with primitive thermodynamic estimators.
 
 """
-    get_sample_pt(sp::SamplingParameters{S,M,P})
+    get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P})
 
-Compute a sample using `sp`.
+Compute a sample for `sys` using `sp`.
 """
-function get_sample_pt(sp::SamplingParameters{S,M,P}) where {S,M,P}
+function get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P}) where {S,M,P}
     # Choose a surface.
     s_ = sample(1:S, sp.weights)
 
@@ -31,16 +31,16 @@ function get_sample_pt(sp::SamplingParameters{S,M,P}) where {S,M,P}
             # Only build the upper triangle.
             for s2 in 1:s1
                 if s1 != s2
-                    preIM[s2, s1] += sp.sys.energy[s2, s1]
+                    preIM[s2, s1] += sys.energy[s2, s1]
 
                     for m in 1:M
-                        preIM[s2, s1] += sp.sys.lin[m, s2, s1] * qs[i1, m]
+                        preIM[s2, s1] += sys.lin[m, s2, s1] * qs[i1, m]
                     end
                 end
 
                 for m1 in 1:M
                     for m2 in 1:M
-                        preIM[s2, s1] += 0.5 * sp.sys.quad[m2, m1, s2, s1] * qs[i1, m2] * qs[i1, m1]
+                        preIM[s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * qs[i1, m2] * qs[i1, m1]
                     end
                 end
             end
@@ -54,11 +54,11 @@ function get_sample_pt(sp::SamplingParameters{S,M,P}) where {S,M,P}
             CM1 = zeros(S, S)
         end
         for s in 1:S
-            EM2[s, s] -= sp.sys.energy[s, s] + sp.deltas[s]
+            EM2[s, s] -= sp.sys.energy[s, s] + sp.sys.deltas[s]
 
             for m in 1:M
-                q_disp1 = qs[i1, m] - sp.ds[m, s]
-                q_disp2 = qs[i2, m] - sp.ds[m, s]
+                q_disp1 = qs[i1, m] - sp.sys.ds[m, s]
+                q_disp2 = qs[i2, m] - sp.sys.ds[m, s]
 
                 EM2[s, s] -= sp.sys.freq[m, s] * 0.5 * sp.Cs[m, s] / sp.Ss[m, s]
                 EM2[s, s] -= sp.sys.freq[m, s] * q_disp1 * q_disp2 * sp.Cs[m, s] / sp.Ss[m, s]^2
@@ -79,11 +79,11 @@ function get_sample_pt(sp::SamplingParameters{S,M,P}) where {S,M,P}
         # Free particle matrix.
         FM = zeros(S, S)
         for s in 1:S
-            x = -sp.tau * (sp.sys.energy[s, s] + sp.deltas[s])
+            x = -sp.tau * (sp.sys.energy[s, s] + sp.sys.deltas[s])
 
             for m in 1:M
-                q_disp1 = qs[i1, m] - sp.ds[m, s]
-                q_disp2 = qs[i2, m] - sp.ds[m, s]
+                q_disp1 = qs[i1, m] - sp.sys.ds[m, s]
+                q_disp2 = qs[i2, m] - sp.sys.ds[m, s]
 
                 x += -0.5 * ((q_disp1^2 + q_disp2^2) * sp.Cs[m, s] - 2 * q_disp1 * q_disp2) / sp.Ss[m, s]
             end
@@ -152,7 +152,10 @@ random samples.
 The progress meter is written to `progress_output`.
 """
 function SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr) where {S,M}
-    sp = SamplingParameters(sys, beta, P)
+    sys_diag = diag(sys)
+    sys_diag_simple = simplify(sys_diag)
+
+    sp = SamplingParameters(sys_diag_simple, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
 
@@ -161,7 +164,7 @@ function SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int,
 
     meter = Progress(num_samples, output=progress_output)
     for n in ProgressWrapper(1:num_samples, meter)
-        samples[:, n] .= get_sample_pt(sp)
+        samples[:, n] .= get_sample_pt(sys, sp)
 
         if !problems[1] && samples[1, n] == 0.0
             @warn "\azero!"
