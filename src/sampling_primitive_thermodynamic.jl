@@ -86,14 +86,14 @@ struct SamplingPrimitiveThermodynamic <: Sampling
 end
 
 """
-    SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
+    SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples.
 
 The progress meter is written to `progress_output`.
 """
-function SamplingPrimitiveThermodynamic(sys::System{S,M}, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr) where {S,M}
+function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
 

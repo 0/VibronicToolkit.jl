@@ -41,6 +41,6 @@ struct DiagonalSystem{S,M} <: System{S,M}
     end
 end
 
-diag(sys::DiagonalSystem{S,M}) where {S,M} = sys
+diag(sys::DiagonalSystem) = sys
 
-isdiag(sys::DiagonalSystem{S,M}) where {S,M} = true
+isdiag(sys::DiagonalSystem) = true

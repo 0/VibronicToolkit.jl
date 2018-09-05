@@ -18,7 +18,7 @@ Extract the diagonal part of `sys` as a `DiagonalSystem{S,M}`.
 function diag end
 
 """
-    isdiag(sys::System{S,M})
+    isdiag(sys::System)
 
 Determine whether `sys` is diagonal (in content, rather than type or
 structure). Returns `true` if there is no coupling between surfaces and `false`
@@ -47,23 +47,21 @@ function Base.isapprox(sys1::System{S,M}, sys2::System{S,M}; kwargs...) where {S
 end
 
 """
-    DenseSystem(sys::DiagonalSystem{S,M})
+    DenseSystem(sys::DiagonalSystem)
 
 Create a dense system from the diagonal system `sys`.
 """
-function DenseSystem(sys::DiagonalSystem{S,M}) where {S,M}
-    DenseSystem(sys.energy, sys.freq, sys.lin, sys.quad)
-end
+DenseSystem(sys::DiagonalSystem) = DenseSystem(sys.energy, sys.freq, sys.lin, sys.quad)
 
 """
-    DiagonalSystem(sys::DenseSystem{S,M})
+    DiagonalSystem(sys::DenseSystem)
 
 Create a diagonal system from the dense system `sys`.
 
 If there is any coupling between surfaces, `SurfaceCouplingException` is
 thrown.
 """
-function DiagonalSystem(sys::DenseSystem{S,M}) where {S,M}
+function DiagonalSystem(sys::DenseSystem)
     isdiag(sys) || throw(SurfaceCouplingException())
     diag(sys)
 end
@@ -103,7 +101,7 @@ function check_shape(S::Int, M::Int, energy::AbstractMatrix{Float64}, freq::Abst
 end
 
 """
-    simplify(sys::T)
+    simplify(sys::System)
 
 Generate a simplified version of `sys` with no quadratic coupling.
 """

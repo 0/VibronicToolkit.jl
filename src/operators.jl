@@ -14,7 +14,7 @@ struct Basis{S,M}
 end
 
 """
-    Basis(::System{S,M}, size::Int)
+    Basis(::System, size::Int)
 
 Create a basis with `size` basis functions for a single mode.
 """
@@ -56,7 +56,7 @@ Position operator in `basis` for a single mode.
 q(basis::Basis) = (a(basis)' + a(basis)) / sqrt(2.0)
 
 """
-    mkop(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int)
+    mkop(basis::Basis, op::Matrix{Float64}, idx::Int)
 
 Create a multi-mode operator in `basis` that is the tensor product of `op` at
 mode `idx` and the identity operator at all other modes.
@@ -81,20 +81,20 @@ function mkop(basis::Basis{S,M}, op::Matrix{Float64}, idx::Int) where {S,M}
 end
 
 """
-    mkop(basis::Basis{S,M}, op, idx::Int)
+    mkop(basis::Basis, op, idx::Int)
 
 Create a multi-mode operator in `basis` that is the tensor product of `op` at
 mode `idx` and the identity operator at all other modes, where `op` is a
 function that generates the operator in the basis.
 """
-mkop(basis::Basis{S,M}, op, idx::Int) where {S,M} = mkop(basis, op(basis), idx)
+mkop(basis::Basis, op, idx::Int) = mkop(basis, op(basis), idx)
 
 """
-    mkid(basis::Basis{S,M})
+    mkid(basis::Basis)
 
 Create a multi-mode identity operator in `basis`.
 """
-mkid(basis::Basis{S,M}) where {S,M} = mkop(basis, id(basis), 1)
+mkid(basis::Basis) = mkop(basis, id(basis), 1)
 
 """
     operators(basis::Basis{S,M}, sys::System{S,M})

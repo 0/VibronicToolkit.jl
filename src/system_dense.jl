@@ -41,4 +41,4 @@ function diag(sys::DenseSystem{S,M}) where {S,M}
     DiagonalSystem(energy, freq, lin, quad)
 end
 
-isdiag(sys::DenseSystem{S,M}) where {S,M} = isdiag(sys.energy, sys.lin, sys.quad)
+isdiag(sys::DenseSystem) = isdiag(sys.energy, sys.lin, sys.quad)

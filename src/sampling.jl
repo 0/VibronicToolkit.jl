@@ -23,7 +23,7 @@ struct SamplingParameters{S,M,P}
 end
 
 """
-    SamplingParameters(sys::DiagonalSystem{S,M}, beta::Float64, P::Int)
+    SamplingParameters(sys::DiagonalSystem, beta::Float64, P::Int)
 
 Generate sampling parameters for `sys` at `beta` with `P` links.
 """

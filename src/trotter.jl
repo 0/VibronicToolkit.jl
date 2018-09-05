@@ -13,12 +13,12 @@ struct Trotter <: Solution
 end
 
 """
-    Trotter(sys::System{S,M}, beta::Float64, basis_size::Int, P::Int)
+    Trotter(sys::System, beta::Float64, basis_size::Int, P::Int)
 
 Calculate the solution for `sys` at `beta` with `basis_size` basis functions
 and `P` links.
 """
-function Trotter(sys::System{S,M}, beta::Float64, basis_size::Int, P::Int) where {S,M}
+function Trotter(sys::System, beta::Float64, basis_size::Int, P::Int)
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 

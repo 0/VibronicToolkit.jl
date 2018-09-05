@@ -13,11 +13,11 @@ struct SumOverStates <: Solution
 end
 
 """
-    SumOverStates(sys::System{S,M}, beta::Float64, basis_size::Int)
+    SumOverStates(sys::System, beta::Float64, basis_size::Int)
 
 Calculate the solution for `sys` at `beta` with `basis_size` basis functions.
 """
-function SumOverStates(sys::System{S,M}, beta::Float64, basis_size::Int) where {S,M}
+function SumOverStates(sys::System, beta::Float64, basis_size::Int)
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 
