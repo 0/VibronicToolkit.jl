@@ -1,13 +1,13 @@
 # Monte Carlo solution with primitive thermodynamic estimators.
 
 """
-    get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P})
+    get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp::SamplingParameters{S_,M,P})
 
-Compute a sample for `sys` using `sp`.
+Compute a sample for `sys` using `pseudosp` and `sp`.
 """
-function get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P}) where {S,M,P}
+function get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp::SamplingParameters{S_,M,P}) where {S,S_,M,P}
     # Choose a surface.
-    s_ = sample(1:S, sp.weights)
+    s_ = sample(1:S_, sp.weights)
 
     # Sample coordinates.
     qs = zeros(P, M)
@@ -19,30 +19,29 @@ function get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P}) where {S
     num = Matrix{Float64}(I, S, S)
     num_Es = [Matrix{Float64}(I, S, S) for _ in 1:P]
     num_Cvs = [Matrix{Float64}(I, S, S) for _ in 1:P]
-    denom = Matrix{Float64}(I, S, S)
+    denom = Matrix{Float64}(I, S_, S_)
 
     for i1 in 1:P
         # Next index in cyclic path.
         i2 = i1%P+1
 
-        FM, _ = sampling_matrix_free_particle(sp, qs[i1, :], qs[i2, :])
-        EM1, IM = sampling_matrix_interaction(sys, sp, qs[i1, :])
-        EM2 = sampling_matrix_energy(sp, qs[i1, :], qs[i2, :])
+        # Numerator.
+        FM_num, scaling = sampling_matrix_free_particle(pseudosp, qs[i1, :], qs[i2, :])
+        EM1, IM = sampling_matrix_interaction(sys, pseudosp, qs[i1, :])
+        EM2 = sampling_matrix_energy(pseudosp, qs[i1, :], qs[i2, :])
         EM = EM1 - EM2
         if i1 == 1
-            CM1 = sampling_matrix_heat_capacity(sp, qs[i1, :], qs[i2, :])
+            CM1 = sampling_matrix_heat_capacity(pseudosp, qs[i1, :], qs[i2, :])
             CM = EM1 * EM + CM1 - EM * EM2
         end
-
-        IFM = IM * FM
-        IEFM = IM * EM * FM
-
-        num *= IM * FM
+        IFM = IM * FM_num
+        IEFM = IM * EM * FM_num
+        num *= IM * FM_num
         for i in 1:P
             if i == i1
                 num_Es[i] *= IEFM
                 if i1 == 1
-                    num_Cvs[i] *= IM * CM * FM
+                    num_Cvs[i] *= IM * CM * FM_num
                 else
                     num_Cvs[i] *= IEFM
                 end
@@ -55,7 +54,10 @@ function get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P}) where {S
                 end
             end
         end
-        denom *= FM
+
+        # Denominator.
+        FM_denom, _ = sampling_matrix_free_particle(sp, qs[i1, :], qs[i2, :]; scaling=scaling)
+        denom *= FM_denom
     end
 
     trace_num = tr(num)
@@ -88,22 +90,30 @@ struct SamplingPrimitiveThermodynamic <: Sampling
 end
 
 """
-    SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
+    SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_beta::Maybe{Float64}=nothing, progress_output::IO=stderr)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples.
 
+If `sampling_sys` and `sampling_beta` are provided, they are used for sampling.
+Otherwise, sampling defaults to the simplified diagonal subsystem of `sys` and
+`beta`.
+
 The progress meter is written to `progress_output`.
 """
-function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
+function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_beta::Maybe{Float64}=nothing, progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
-    sp = SamplingParameters(sys_diag_simple, beta, P)
+    pseudosp = SamplingParameters(sys_diag_simple, beta, P)
+
+    sampling_sys === nothing && (sampling_sys = sys_diag_simple)
+    sampling_beta === nothing && (sampling_beta = beta)
+    sp = SamplingParameters(sampling_sys, sampling_beta, P)
 
     samples = zeros(Float64, 3, num_samples)
     meter = Progress(num_samples, output=progress_output)
     for n in ProgressWrapper(1:num_samples, meter)
-        samples[:, n] .= get_sample_pt(sys, sp)
+        samples[:, n] .= get_sample_pt(sys, pseudosp, sp)
     end
 
     f_E(samples, samples_E, samples_Cv) =

@@ -30,6 +30,13 @@ s.autofix_names = true
         help = "number of samples"
         arg_type = Int
         required = true
+    "--sampling-conf"
+        metavar = "FILE"
+        help = "path to sampling config file"
+    "--sampling-beta"
+        metavar = "T"
+        help = "sampling reciprocal temperature"
+        arg_type = Float64
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
@@ -42,13 +49,26 @@ else
 end
 P = c[:num_links]
 num_samples = c[:num_samples]
+if c[:sampling_conf] !== nothing
+    sampling_sys = read(c[:sampling_conf], DiagonalSystem)
+    # Changing the sampling system changes the normalization for Z, so we
+    # renormalize it to obtain the same result as when using the default
+    # sampling system.
+    simple_reg = Analytical(simplify(diag(sys)), beta)
+    simple_samp = Analytical(sampling_sys, beta)
+    Z_renorm = simple_samp.Z / simple_reg.Z
+else
+    sampling_sys = nothing
+    Z_renorm = 1.0
+end
+sampling_beta = c[:sampling_beta]
 
 if dbeta !== nothing
-    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples)
+    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, sampling_beta=sampling_beta)
 else
-    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples)
+    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys, sampling_beta=sampling_beta)
 end
 
-println("Z/Z: $(sampling.Z) ± $(sampling.Z_err)")
+println("Z/Z: $(sampling.Z * Z_renorm) ± $(sampling.Z_err * Z_renorm)")
 println("E: $(sampling.E) ± $(sampling.E_err)")
 println("Cv: $(sampling.Cv) ± $(sampling.Cv_err)")

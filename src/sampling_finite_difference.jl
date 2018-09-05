@@ -1,49 +1,48 @@
 # Monte Carlo solution with finite difference estimators.
 
 """
-    get_sample_fd(sys::System{S,M}, sps::SamplingParameters{S,M,P}...)
+    get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{S,M,P}}, sp::SamplingParameters{S_,M,P})
 
-Compute a sample for `sys` using `sps`.
+Compute a sample for `sys` using `pseudosps` and `sp`.
 """
-function get_sample_fd(sys::System{S,M}, sps::SamplingParameters{S,M,P}...) where {S,M,P}
-    length(sps) >= 1 || throw(DomainError(length(sps), "At least one set of parameters."))
+function get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{S,M,P}}, sp::SamplingParameters{S_,M,P}) where {S,S_,M,P,N}
+    length(pseudosps) >= 1 || throw(DomainError(length(pseudosps), "At least one set of parameters."))
 
     # Choose a surface.
-    s_ = sample(1:S, sps[1].weights)
+    s_ = sample(1:S_, sp.weights)
 
     # Sample coordinates.
     qs = zeros(P, M)
     for m in 1:M
-        qs[:, m] .= rand(sps[1].mvns[m, s_])
+        qs[:, m] .= rand(sp.mvns[m, s_])
     end
 
-    traces_num = Float64[]
-    traces_denom = Float64[]
+    # Calculate the numerator and denominator matrices.
+    nums = [Matrix{Float64}(I, S, S) for _ in 1:N]
+    denom = Matrix{Float64}(I, S_, S_)
 
-    scalings = Any[nothing for _ in 1:P]
-    for sp in sps
-        # Calculate the numerator and denominator matrices.
-        num = Matrix{Float64}(I, S, S)
-        denom = Matrix{Float64}(I, S, S)
+    for i1 in 1:P
+        # Next index in cyclic path.
+        i2 = i1%P+1
 
-        for i1 in 1:P
-            # Next index in cyclic path.
-            i2 = i1%P+1
+        scaling = nothing
 
-            FM, scalings[i1] = sampling_matrix_free_particle(sp, qs[i1, :], qs[i2, :]; scaling=scalings[i1])
-            _, IM = sampling_matrix_interaction(sys, sp, qs[i1, :])
-
-            num *= IM * FM
-            denom *= FM
+        # Numerator.
+        for (j, pseudosp) in enumerate(pseudosps)
+            FM_num, scaling = sampling_matrix_free_particle(pseudosp, qs[i1, :], qs[i2, :]; scaling=scaling)
+            _, IM = sampling_matrix_interaction(sys, pseudosp, qs[i1, :])
+            nums[j] *= IM * FM_num
         end
 
-        push!(traces_num, tr(num))
-        push!(traces_denom, tr(denom))
+        # Denominator.
+        FM_denom, _ = sampling_matrix_free_particle(sp, qs[i1, :], qs[i2, :]; scaling=scaling)
+        denom *= FM_denom
     end
 
-    [traces_num[1]/traces_denom[1],
-     traces_num[2]/traces_denom[1],
-     traces_num[3]/traces_denom[1]]
+    traces_num = [tr(num) for num in nums]
+    trace_denom = tr(denom)
+
+    [trace_num/trace_denom for trace_num in traces_num]
 end
 
 """
@@ -66,29 +65,37 @@ struct SamplingFiniteDifference <: Sampling
 end
 
 """
-    SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
+    SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_beta::Maybe{Float64}=nothing, progress_output::IO=stderr)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples, using finite difference step `dbeta`.
 
+If `sampling_sys` and `sampling_beta` are provided, they are used for sampling.
+Otherwise, sampling defaults to the simplified diagonal subsystem of `sys` and
+`beta`.
+
 The progress meter is written to `progress_output`.
 """
-function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
+function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_beta::Maybe{Float64}=nothing, progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
-    sp = SamplingParameters(sys_diag_simple, beta, P)
-    sp_m = SamplingParameters(sys_diag_simple, beta-dbeta, P)
-    sp_p = SamplingParameters(sys_diag_simple, beta+dbeta, P)
+    pseudosp = SamplingParameters(sys_diag_simple, beta, P)
+    pseudosp_m = SamplingParameters(sys_diag_simple, beta-dbeta, P)
+    pseudosp_p = SamplingParameters(sys_diag_simple, beta+dbeta, P)
+
+    sampling_sys === nothing && (sampling_sys = sys_diag_simple)
+    sampling_beta === nothing && (sampling_beta = beta)
+    sp = SamplingParameters(sampling_sys, sampling_beta, P)
 
     samples = zeros(Float64, 3, num_samples)
     meter = Progress(num_samples, output=progress_output)
     for n in ProgressWrapper(1:num_samples, meter)
-        samples[:, n] .= get_sample_fd(sys, sp, sp_m, sp_p)
+        samples[:, n] .= get_sample_fd(sys, (pseudosp, pseudosp_m, pseudosp_p), sp)
     end
 
-    simple = Analytical(sys_diag_simple, beta)
-    simple_m = Analytical(sys_diag_simple, beta-dbeta)
-    simple_p = Analytical(sys_diag_simple, beta+dbeta)
+    simple = Analytical(sampling_sys, beta)
+    simple_m = Analytical(sampling_sys, beta-dbeta)
+    simple_p = Analytical(sampling_sys, beta+dbeta)
     Zrat_m = simple.Z / simple_m.Z
     Zrat_p = simple.Z / simple_p.Z
 

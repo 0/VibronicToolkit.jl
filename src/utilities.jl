@@ -23,6 +23,8 @@ function diag(A::Array, dim1::Int, dim2::Int)
     result
 end
 
+Maybe{T} = Union{T,Nothing} where {T}
+
 function show_value(io::IO, x::Float64)
     if x == 0.0
         print(io, "    .          ")

@@ -3,7 +3,10 @@ let sys = DenseSystem(test_params...),
     dbeta = 1e-4,
     P = 256,
     num_samples = 100,
-    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; progress_output=devnull)
+    sampling_sys = DiagonalSystem(test_params_sampling...),
+    sampling_beta = 11.11
 
     # Only testing that it runs to completion.
+    @test_nowarn SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; progress_output=devnull)
+    @test_nowarn SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, sampling_beta=sampling_beta, progress_output=devnull)
 end

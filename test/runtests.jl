@@ -43,6 +43,20 @@ test_params_trivial = (ones(test_S, test_S),
                        zeros(test_M, test_S, test_S),
                        zeros(test_M, test_M, test_S, test_S))
 
+test_S_sampling = 5
+test_energy_sampling = zeros(test_S_sampling, test_S_sampling)
+test_freq_sampling = zeros(test_M, test_S_sampling)
+test_lin_sampling = zeros(test_M, test_S_sampling, test_S_sampling)
+test_quad_sampling = zeros(test_M, test_M, test_S_sampling, test_S_sampling)
+for s1 in 1:test_S_sampling
+    test_energy_sampling[s1, s1] = 0.01*(s1+s1) - 1.0
+    for m1 in 1:test_M
+        test_freq_sampling[m1, s1] = s1+m1
+        test_lin_sampling[m1, s1, s1] = 0.001*(s1+s1+m1)
+    end
+end
+test_params_sampling = (test_energy_sampling, test_freq_sampling, test_lin_sampling, test_quad_sampling)
+
 @testset "VibronicToolkit" begin
     @testset "utilities.jl" begin include("utilities.jl") end
 
