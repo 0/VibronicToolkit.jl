@@ -76,42 +76,21 @@ The progress meter is written to `progress_output`.
 function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
-
-    simple = Analytical(sys_diag_simple, beta)
-    simple_m = Analytical(sys_diag_simple, beta-dbeta)
-    simple_p = Analytical(sys_diag_simple, beta+dbeta)
-
-    Zrat_m = simple.Z / simple_m.Z
-    Zrat_p = simple.Z / simple_p.Z
-
     sp = SamplingParameters(sys_diag_simple, beta, P)
     sp_m = SamplingParameters(sys_diag_simple, beta-dbeta, P)
     sp_p = SamplingParameters(sys_diag_simple, beta+dbeta, P)
 
     samples = zeros(Float64, 3, num_samples)
-
-    # zero, Inf, NaN
-    problems = [false, false, false]
-
     meter = Progress(num_samples, output=progress_output)
     for n in ProgressWrapper(1:num_samples, meter)
         samples[:, n] .= get_sample_fd(sys, sp, sp_m, sp_p)
-
-        if !problems[1] && any(samples[:, n] .== 0.0)
-            @warn "\azero!"
-            problems[1] = true
-        end
-
-        if !problems[2] && any(samples[:, n] .== Inf)
-            @warn "\aInf!"
-            problems[2] = true
-        end
-
-        if !problems[3] && any(samples[:, n] .!= samples[:, n])
-            @warn "\aNaN!"
-            problems[3] = true
-        end
     end
+
+    simple = Analytical(sys_diag_simple, beta)
+    simple_m = Analytical(sys_diag_simple, beta-dbeta)
+    simple_p = Analytical(sys_diag_simple, beta+dbeta)
+    Zrat_m = simple.Z / simple_m.Z
+    Zrat_p = simple.Z / simple_p.Z
 
     f_E(samples, samples_m, samples_p) =
         simple.E .+

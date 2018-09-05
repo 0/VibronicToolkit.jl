@@ -63,7 +63,9 @@ function get_sample_pt(sys::System{S,M}, sp::SamplingParameters{S,M,P}) where {S
     trace_num_Cv = mean(tr(num_Cv) for num_Cv in num_Cvs)
     trace_denom = tr(denom)
 
-    [trace_num/trace_denom, trace_num_E/trace_denom, trace_num_Cv/trace_denom]
+    [trace_num/trace_denom,
+     trace_num_E/trace_denom,
+     trace_num_Cv/trace_denom]
 end
 
 """
@@ -96,32 +98,12 @@ The progress meter is written to `progress_output`.
 function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
-
     sp = SamplingParameters(sys_diag_simple, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
-
-    # zero, Inf, NaN
-    problems = [false, false, false]
-
     meter = Progress(num_samples, output=progress_output)
     for n in ProgressWrapper(1:num_samples, meter)
         samples[:, n] .= get_sample_pt(sys, sp)
-
-        if !problems[1] && samples[1, n] == 0.0
-            @warn "\azero!"
-            problems[1] = true
-        end
-
-        if !problems[2] && any(samples[:, n] .== Inf)
-            @warn "\aInf!"
-            problems[2] = true
-        end
-
-        if !problems[3] && any(samples[:, n] .!= samples[:, n])
-            @warn "\aNaN!"
-            problems[3] = true
-        end
     end
 
     f_E(samples, samples_E, samples_Cv) =
