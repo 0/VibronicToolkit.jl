@@ -1,0 +1,18 @@
+{
+    "number of surfaces": 2,
+    "number of modes": 2,
+    "energies": [
+        [0.07666, 0.0],
+        [0.0, 0.07666]
+    ],
+    "frequencies": [0.03, 0.03],
+    "linear couplings": [
+        [
+            [0.08, 0.0],
+            [0.0, -0.08]
+        ], [
+            [0.0, 0.08],
+            [0.08, 0.0]
+        ]
+    ]
+}
