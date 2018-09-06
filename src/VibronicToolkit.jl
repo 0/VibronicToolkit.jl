@@ -1,7 +1,8 @@
 module VibronicToolkit
 
-using LinearAlgebra: diag, diagm, Diagonal, eigen, eigvals, I, isdiag,
-                     issymmetric, Symmetric, tr
+import LinearAlgebra: diag, isdiag
+using LinearAlgebra: diagm, Diagonal, eigen, eigvals, I, issymmetric,
+                     Symmetric, tr
 using Statistics: mean, std
 
 using Distributions: MvNormal, sample
@@ -9,9 +10,16 @@ import JSON
 using ProgressMeter: @showprogress
 using StatsBase: Weights
 
+# We re-export diag and isdiag from LinearAlgebra.
 export
-    System,
+    SurfaceCouplingException,
 
+    System,
+    DenseSystem,
+    DiagonalSystem,
+
+    diag,
+    isdiag,
     simplify,
 
     Analytical,
@@ -24,6 +32,8 @@ export
 Solution for vibronic problem.
 """
 abstract type Solution end
+
+include("utilities.jl")
 
 include("system.jl")
 include("operators.jl")

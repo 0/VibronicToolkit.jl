@@ -1,160 +1,97 @@
-# Description of the vibronic system.
+# Description of a vibronic system.
+
+"""
+The system has non-zero off-diagonal elements that couple the surfaces.
+"""
+struct SurfaceCouplingException <: Exception end
 
 """
 System of `M` coupled harmonic oscillators (modes) across `S` surfaces.
 """
-struct System{S,M}
-    "Energy offsets (S, S)."
-    energy::Matrix{Float64}
-    "Frequencies (M, S)."
-    freq::Matrix{Float64}
-    "Linear prefactors (M, S, S)."
-    lin::Array{Float64,3}
-    "Quadratic prefactors (M, M, S, S)."
-    quad::Array{Float64,4}
-end
+abstract type System{S,M} end
 
 """
-    System(path)
+    diag(sys::System{S,M})
 
-Create a system from the JSON description in the file at `path`.
+Extract the diagonal part of `sys` as a `DiagonalSystem{S,M}`.
 """
-function System(path)
-    data = JSON.parsefile(path)
+function diag end
 
-    S = data["number of surfaces"]
-    S >= 1 || throw(DomainError(S, "At least 1 surface."))
+"""
+    isdiag(sys::System{S,M})
 
-    M = data["number of modes"]
-    M >= 1 || throw(DomainError(M, "At least 1 mode."))
+Determine whether `sys` is diagonal (in content, rather than type or
+structure). Returns `true` if there is no coupling between surfaces and `false`
+otherwise.
+"""
+function isdiag end
 
-    for key in ["linear coupling", "quadratic coupling"]
-        haskey(data, key) && error("System file contains outdated key '$(key)'.")
-    end
-
-    energy = zeros(S, S)
-    if haskey(data, "energies")
-        length(data["energies"]) == size(energy, 1) || error("Bad energy size")
-        for (idx1, data1) in enumerate(data["energies"])
-            if length(data1) == 1
-                energy[idx1, idx1] = data1[1]
-            elseif length(data1) == size(energy, 2)
-                for (idx2, data2) in enumerate(data1)
-                    energy[idx1, idx2] = data2
-                end
-            else
-                error("Bad energy size")
-            end
-        end
-    end
-    all(isapprox.(energy, permutedims(energy); rtol=1e-12)) || error("Asymmetric energy")
-
-    freq = zeros(M, S)
-    # We repeat the frequency values over the surfaces.
-    if haskey(data, "frequencies")
-        length(data["frequencies"]) == size(freq, 1) || error("Bad freq size")
-        for (idx1, data1) in enumerate(data["frequencies"])
-            freq[idx1, :] .= data1
-        end
-    end
-    all(freq .> 0) || error("Nonpositive freq")
-
-    lin = zeros(M, S, S)
-    if haskey(data, "linear couplings")
-        length(data["linear couplings"]) == size(lin, 1) || error("Bad lin size")
-        for (idx1, data1) in enumerate(data["linear couplings"])
-            length(data1) == size(lin, 2) || error("Bad lin size")
-            for (idx2, data2) in enumerate(data1)
-                if length(data2) == 1
-                    lin[idx1, idx2, idx2] = data2[1]
-                elseif length(data2) == size(lin, 3)
-                    for (idx3, data3) in enumerate(data2)
-                        lin[idx1, idx2, idx3] = data3
-                    end
-                else
-                    error("Bad lin size")
-                end
-            end
-        end
-    end
-    all(isapprox.(lin, permutedims(lin, [1, 3, 2]); rtol=1e-12)) || error("Asymmetric lin")
-
-    quad = zeros(M, M, S, S)
-    if haskey(data, "quadratic couplings")
-        length(data["quadratic couplings"]) == size(quad, 1) || error("Bad quad size")
-        for (idx1, data1) in enumerate(data["quadratic couplings"])
-            length(data1) == size(quad, 2) || error("Bad quad size")
-            for (idx2, data2) in enumerate(data1)
-                length(data2) == size(quad, 3) || error("Bad quad size")
-                for (idx3, data3) in enumerate(data2)
-                    if length(data3) == 1
-                        quad[idx1, idx2, idx3, idx3] = data3[1]
-                    elseif length(data3) == size(quad, 4)
-                        for (idx4, data4) in enumerate(data3)
-                            quad[idx1, idx2, idx3, idx4] = data4
-                        end
-                    else
-                        error("Bad quad size")
-                    end
-                end
-            end
-        end
-    end
-    all(isapprox.(quad, permutedims(quad, [1, 2, 4, 3]); rtol=1e-12)) || error("Asymmetric quad")
-
-    System{S,M}(energy, freq, lin, quad)
-end
-
-function JSON.lower(sys::System{S,M}) where {S,M}
-    result = Dict()
-
-    result["number of surfaces"] = S
-    result["number of modes"] = M
-
-    result["energies"] = permutedims(sys.energy)
-    result["frequencies"] = sys.freq[:, 1]
-    result["linear couplings"] = permutedims(sys.lin, [3, 2, 1])
-    result["quadratic couplings"] = permutedims(sys.quad, [4, 3, 2, 1])
-
-    result
-end
+include("system_dense.jl")
+include("system_diagonal.jl")
 
 Base.write(io::IO, sys::System{S,M}) where {S,M} = JSON.print(io, sys)
 
 """
-    simplify(sys::System{S,M})
+    DenseSystem(sys::DiagonalSystem{S,M})
 
-Generate a simplified version of `sys` with no quadratic coupling and no
-inter-surface linear coupling.
+Create a dense system from the diagonal system `sys`.
 """
-function simplify(sys::System{S,M}) where {S,M}
-    energy_new = Diagonal(sys.energy)
-
-    lin_new = zero(sys.lin)
-    for s in 1:S
-        lin_new[:, s, s] .= sys.lin[:, s, s]
-    end
-
-    System{S,M}(energy_new, sys.freq, lin_new, zero(sys.quad))
+function DenseSystem(sys::DiagonalSystem{S,M}) where {S,M}
+    DenseSystem(sys.energy, sys.freq, sys.lin, sys.quad)
 end
 
 """
-    is_coupled(sys::System{S,M})
+    DiagonalSystem(sys::DenseSystem{S,M})
 
-Whether `sys` has coupling between surfaces.
+Create a diagonal system from the dense system `sys`.
+
+If there is any coupling between surfaces, `SurfaceCouplingException` is
+thrown.
 """
-function is_coupled(sys::System{S,M}) where {S,M}
-    isdiag(sys.energy) || return true
+function DiagonalSystem(sys::DenseSystem{S,M}) where {S,M}
+    isdiag(sys) || throw(SurfaceCouplingException())
+    diag(sys)
+end
 
-    for m in 1:M
-        isdiag(sys.lin[m, :, :]) || return true
+"""
+    isdiag(energy::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
+
+Determine whether the component tensors of a system are diagonal in surfaces.
+"""
+function isdiag(energy::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
+    isdiag(energy) || return false
+    for m in 1:size(lin, 1)
+        isdiag(lin[m, :, :]) || return false
     end
-
-    for m1 in 1:M
-        for m2 in 1:M
-            isdiag(sys.quad[m2, m1, :, :]) || return true
+    for m1 in 1:size(quad, 2)
+        for m2 in 1:size(quad, 1)
+            isdiag(quad[m2, m1, :, :]) || return false
         end
     end
+    true
+end
 
-    false
+"""
+    check_shape(S::Int, M::Int, energy::AbstractMatrix{Float64}, freq::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
+
+Throw the appropriate exception if the component tensors of a system have the
+wrong shape.
+"""
+function check_shape(S::Int, M::Int, energy::AbstractMatrix{Float64}, freq::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
+    S >= 1 || throw(DomainError(S, "At least 1 surface."))
+    M >= 1 || throw(DomainError(M, "At least 1 mode."))
+    size(energy) == (S, S) || throw(DomainError(size(energy), "Expected energy dimensions: $(S), $(S)."))
+    size(freq) == (M, S) || throw(DomainError(size(freq), "Expected freq dimensions: $(M), $(S)."))
+    size(lin) == (M, S, S) || throw(DomainError(size(lin), "Expected lin dimensions: $(M), $(S), $(S)."))
+    size(quad) == (M, M, S, S) || throw(DomainError(size(quad), "Expected quad dimensions: $(M), $(M), $(S), $(S)."))
+    nothing
+end
+
+"""
+    simplify(sys::T)
+
+Generate a simplified version of `sys` with no quadratic coupling.
+"""
+function simplify(sys::T) where {T<:System}
+    T(sys.energy, sys.freq, sys.lin, zero(sys.quad))
 end

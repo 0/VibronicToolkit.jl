@@ -105,9 +105,9 @@ Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples, using finite difference step `dbeta`.
 """
 function SamplingFiniteDifference(sys::System{S,M}, beta::Float64, dbeta::Float64, P::Int, num_samples::Int) where {S,M}
-    simple = Analytical(simplify(sys), beta)
-    simple_m = Analytical(simplify(sys), beta-dbeta)
-    simple_p = Analytical(simplify(sys), beta+dbeta)
+    simple = Analytical(simplify(diag(sys)), beta)
+    simple_m = Analytical(simplify(diag(sys)), beta-dbeta)
+    simple_p = Analytical(simplify(diag(sys)), beta+dbeta)
 
     Zrat_m = simple.Z / simple_m.Z
     Zrat_p = simple.Z / simple_p.Z

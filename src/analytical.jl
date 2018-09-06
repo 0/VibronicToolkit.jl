@@ -13,13 +13,11 @@ struct Analytical <: Solution
 end
 
 """
-    Analytical(sys::System{S,M}, beta::Float64)
+    Analytical(sys::DiagonalSystem{S,M}, beta::Float64)
 
 Calculate the solution for `sys` at `beta`.
 """
-function Analytical(sys::System{S,M}, beta::Float64) where {S,M}
-    is_coupled(sys) && error("Analytical solution only applies to uncoupled systems")
-
+function Analytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
     Zs = exp.(-beta * diag(sys.energy))
     E1s = zero(Zs)
     E2s = zero(Zs)

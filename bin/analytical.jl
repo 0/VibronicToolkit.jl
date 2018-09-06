@@ -22,17 +22,22 @@ s.autofix_names = true
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
-sys = System(c[:conf])
+sys = DenseSystem(c[:conf])
 beta = c[:beta]
 
-simple = Analytical(simplify(sys), beta)
+simple = Analytical(simplify(diag(sys)), beta)
 
 if c[:uncoupled]
     println("Z: $(simple.Z)")
     println("E: $(simple.E)")
     println("Cv: $(simple.Cv)")
 else
-    analytical = Analytical(sys, beta)
+    try
+        global analytical = Analytical(DiagonalSystem(sys), beta)
+    catch ex
+        ex isa SurfaceCouplingException || rethrow()
+        error("Analytical solution only applies to uncoupled systems")
+    end
 
     println("Z/Z: $(analytical.Z/simple.Z)")
     println("E: $(analytical.E)")

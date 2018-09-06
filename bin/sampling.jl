@@ -33,7 +33,7 @@ s.autofix_names = true
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
-sys = System(c[:conf])
+sys = DenseSystem(c[:conf])
 beta = c[:beta]
 if c[:dbeta] !== nothing
     dbeta = c[:dbeta] * beta

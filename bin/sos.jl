@@ -24,12 +24,12 @@ s.autofix_names = true
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
-sys = System(c[:conf])
+sys = DenseSystem(c[:conf])
 beta = c[:beta]
 basis_size = c[:basis_size]
 
 sos = SumOverStates(sys, beta, basis_size)
-simple = Analytical(simplify(sys), beta)
+simple = Analytical(simplify(diag(sys)), beta)
 
 println("Z/Z: $(sos.Z/simple.Z)")
 println("E: $(sos.E)")
