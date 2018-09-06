@@ -29,8 +29,7 @@ beta = c[:beta]
 basis_size = c[:basis_size]
 
 sos = SumOverStates(sys, beta, basis_size)
-simple = Analytical(simplify(diag(sys)), beta)
 
-println("Z/Z: $(sos.Z/simple.Z)")
+println("Z: $(sos.Z)")
 println("E: $(sos.E)")
 println("Cv: $(sos.Cv)")

@@ -25,12 +25,8 @@ c = parse_args(ARGS, s, as_symbols=true)
 sys = read(c[:conf], DenseSystem)
 beta = c[:beta]
 
-simple = Analytical(simplify(diag(sys)), beta)
-
 if c[:uncoupled]
-    println("Z: $(simple.Z)")
-    println("E: $(simple.E)")
-    println("Cv: $(simple.Cv)")
+    analytical = Analytical(simplify(diag(sys)), beta)
 else
     try
         global analytical = Analytical(DiagonalSystem(sys), beta)
@@ -38,8 +34,8 @@ else
         ex isa SurfaceCouplingException || rethrow()
         error("Analytical solution only applies to uncoupled systems")
     end
-
-    println("Z/Z: $(analytical.Z/simple.Z)")
-    println("E: $(analytical.E)")
-    println("Cv: $(analytical.Cv)")
 end
+
+println("Z: $(analytical.Z)")
+println("E: $(analytical.E)")
+println("Cv: $(analytical.Cv)")

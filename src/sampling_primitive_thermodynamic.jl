@@ -116,13 +116,16 @@ function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_
         samples[:, n] .= get_sample_pt(sys, pseudosp, sp)
     end
 
+    simple = Analytical(sampling_sys, beta)
+    normalization = simple.Z
+
     f_E(samples, samples_E, samples_Cv) =
         samples_E ./ samples
     f_Cv(samples, samples_E, samples_Cv) =
         (samples_Cv ./ samples - (samples_E ./ samples).^2) * beta^2
 
-    Z = mean(samples[1, :])
-    Z_err = std(samples[1, :]) / sqrt(num_samples)
+    Z = mean(samples[1, :]) * normalization
+    Z_err = std(samples[1, :]) / sqrt(num_samples) * normalization
     E, E_err = jackknife(f_E, [samples[n, :] for n in 1:size(samples, 1)]...)
     Cv, Cv_err = jackknife(f_Cv, [samples[n, :] for n in 1:size(samples, 1)]...)
 
