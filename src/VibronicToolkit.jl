@@ -28,7 +28,10 @@ export
     SumOverStates,
     Trotter,
     SamplingFiniteDifference,
-    SamplingPrimitiveThermodynamic
+    SamplingPrimitiveThermodynamic,
+
+    ground_pes,
+    path_mean_std
 
 """
 Solution for vibronic problem.
@@ -49,5 +52,7 @@ include("trotter.jl")
 include("sampling.jl")
 include("sampling_finite_difference.jl")
 include("sampling_primitive_thermodynamic.jl")
+
+include("pes.jl")
 
 end

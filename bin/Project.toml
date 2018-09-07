@@ -3,4 +3,5 @@ authors = ["Dmitri Iouchtchenko <diouchtc@uwaterloo.ca>"]
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 VibronicToolkit = "5160a692-a709-11e8-05ad-d13af5981dda"

@@ -15,11 +15,12 @@ pkg> add https://github.com/0/VibronicToolkit.jl.git
 In order to run the driver scripts in `bin/`, you will also need to
 ```
 pkg> add ArgParse
+pkg> add PyPlot
 ```
 
 ### Application project
 
-If you're working with a clone of this repository, you can use the basic application project in `bin/`, which already has both `VibronicToolkit` and `ArgParse` as dependencies.
+If you're working with a clone of this repository, you can use the basic application project in `bin/`, which already has `VibronicToolkit`, `ArgParse`, and `PyPlot` as dependencies.
 From the repository root, run
 ```
 julia --project=bin
@@ -49,6 +50,7 @@ To run the following examples, you should set the project (e.g. using `--project
 * `julia bin/trotter.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30 --num-links 20`
 * `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000000`
 * `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --dbeta 1e-4 --num-links 20 --num-samples 1000000`
+* `julia bin/pes.jl --conf examples/s2m2_coupled.json --num-links 20 --sampling-conf examples/s2m2_simple.json --sampling-beta 43.21 --extent -2,2,-1,1 --out-path pes.pdf --contour`
 
 
 ## Testing

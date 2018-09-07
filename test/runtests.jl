@@ -72,4 +72,6 @@ test_params_sampling = (test_energy_sampling, test_freq_sampling, test_lin_sampl
     @testset "sampling.jl" begin include("sampling.jl") end
     @testset "sampling_finite_difference.jl" begin include("sampling_finite_difference.jl") end
     @testset "sampling_primitive_thermodynamic.jl" begin include("sampling_primitive_thermodynamic.jl") end
+
+    @testset "pes.jl" begin include("pes.jl") end
 end

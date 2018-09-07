@@ -11,6 +11,8 @@ struct SamplingParameters{S,M,P}
 
     "Surface weights."
     weights::Weights
+    "Precision (inverse covariance) matrices (M, S)."
+    precs::Matrix{Matrix{Float64}}
     "Multivariate normal distributions (M, S)."
     mvns::Matrix{MvNormal}
 
@@ -45,6 +47,7 @@ function SamplingParameters(sys::DiagonalSystem{S,M}, beta::Float64, P::Int) whe
     Ss = sinh.(sys.freq * tau)
     S_prods = Float64[prod(Ss[:, s]) for s in 1:S]
 
+    precs = Matrix{Matrix{Float64}}(undef, M, S)
     mvns = Matrix{MvNormal}(undef, M, S)
     for s in 1:S
         for m in 1:M
@@ -54,18 +57,20 @@ function SamplingParameters(sys::DiagonalSystem{S,M}, beta::Float64, P::Int) whe
             prec = diagm(0 => 2 * Cs[m, s] * ones(P), -1 => -ones(P-1), 1 => -ones(P-1))
             prec[1, end] = -1.0
             prec[end, 1] = -1.0
+            prec ./= Ss[m, s]
 
             # Convariance matrix.
-            cov = inv(prec / Ss[m, s])
+            cov = inv(prec)
             maximum(abs.(cov' - cov)) < 1e-13 || @warn "Asymmetric cov: $(maximum(abs.(cov' - cov)))"
             # Force it to be symmetric.
             cov = (cov + cov') / 2
 
+            precs[m, s] = prec
             mvns[m, s] = MvNormal(mean, cov)
         end
     end
 
-    SamplingParameters{S,M,P}(sys, tau, weights, mvns, Cs, Ss, S_prods)
+    SamplingParameters{S,M,P}(sys, tau, weights, precs, mvns, Cs, Ss, S_prods)
 end
 
 function Base.show(io::IO, sp::SamplingParameters{S,M,P}) where {S,M,P}
