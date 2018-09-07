@@ -73,9 +73,23 @@ function Base.show(io::IO, sp::SamplingParameters{S,M,P}) where {S,M,P}
     println(io, "Sampling parameters with $(P) bead$(P == 1 ? "" : "s") for a system with $(S) surface$(S == 1 ? "" : "s") and $(M) mode$(M == 1 ? "" : "s").")
     println(io, "imaginary time step (tau): $(sp.tau)")
     println(io, "sampling weights:")
-    show_vector(io, sp.weights/sum(sp.weights))
+    show_vector(io, weights(sp))
     nothing
 end
+
+"""
+    weights(sp::SamplingParameters)
+
+Compute the normalized surface weights for `sp`.
+"""
+weights(sp::SamplingParameters) = sp.weights/sum(sp.weights)
+
+"""
+    weights(sys::DiagonalSystem, beta::Float64)
+
+Compute the normalized surface weights for `sys` at `beta`.
+"""
+weights(sys::DiagonalSystem, beta::Float64) = weights(SamplingParameters(sys, beta, 2))
 
 """
 Monte Carlo solution for an arbitrary system.

@@ -6,5 +6,6 @@ let sys = DenseSystem(test_params...),
     sp = SamplingParameters(simplify(diag(sys)), beta, P)
 
     @test sp.tau == beta/P
-    @test isapprox(sp.weights/sum(sp.weights), [0.999996583, 3.41696734e-6, 1.16757213e-11])
+    @test isapprox(weights(sp), [0.999996583, 3.41696734e-6, 1.16757213e-11])
+    @test isapprox(weights(sp), weights(simplify(diag(sys)), beta))
 end

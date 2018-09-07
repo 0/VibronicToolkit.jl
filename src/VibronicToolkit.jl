@@ -22,6 +22,7 @@ export
     diag,
     isdiag,
     simplify,
+    weights,
 
     Analytical,
     SumOverStates,
