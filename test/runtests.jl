@@ -57,6 +57,20 @@ for s1 in 1:test_S_sampling
 end
 test_params_sampling = (test_energy_sampling, test_freq_sampling, test_lin_sampling, test_quad_sampling)
 
+test_energy_sym = zeros(test_S, test_S)
+test_lin_sym = zeros(test_M, test_S, test_S)
+test_lin_sym3 = zeros(test_M, test_S, test_S)
+test_quad_sym = zeros(test_M, test_M, test_S, test_S)
+for m1 in 1:test_M
+    for s1 in 1:test_S
+        s2 = m1 % 2 == 0 ? s1 : test_S+1-s1
+        test_lin_sym[m1, s2, s1] = 1.0 + (s1 == 2 ? 1.0 : 0.0)
+        test_lin_sym3[m1, s2, s1] = 1.0
+    end
+end
+test_params_sym = (test_energy_sym, test_freq_flat, test_lin_sym, test_quad_sym)
+test_params_sym3 = (test_energy_sym, test_freq_flat, test_lin_sym3, test_quad_sym)
+
 @testset "VibronicToolkit" begin
     @testset "utilities.jl" begin include("utilities.jl") end
 
@@ -74,4 +88,6 @@ test_params_sampling = (test_energy_sampling, test_freq_sampling, test_lin_sampl
     @testset "sampling_primitive_thermodynamic.jl" begin include("sampling_primitive_thermodynamic.jl") end
 
     @testset "pes.jl" begin include("pes.jl") end
+
+    @testset "iterative_decomposition.jl" begin include("iterative_decomposition.jl") end
 end

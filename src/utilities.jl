@@ -23,6 +23,17 @@ function diag(A::Array, dim1::Int, dim2::Int)
     result
 end
 
+"""
+    @cat A B
+
+Append `B` along the last dimension of `A`, modifying the binding of `A`.
+"""
+macro cat(A::Symbol, B)
+    quote
+        $(esc(A)) = cat($(esc(A)), $(esc(B)); dims=length(size($(esc(A)))))
+    end
+end
+
 Maybe{T} = Union{T,Nothing} where {T}
 
 function show_value(io::IO, x::Float64)

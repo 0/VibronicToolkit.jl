@@ -1,3 +1,5 @@
+using VibronicToolkit: @cat
+
 let A = collect(reshape(1:9, 3, 3))
 
     @test diag(A, 1, 2) == diag(A)
@@ -21,4 +23,15 @@ let A = collect(reshape(1:72, 2, 3, 2, 3, 2)),
         @test C[i, j, k] == A[i, j, i, k, i]
     end
     @test_throws DomainError diag(A, 1, 2)
+end
+
+let A = collect(reshape(1:72, 2, 3, 2, 3, 2)),
+    B = collect(reshape(73:180, 2, 3, 2, 3, 3)),
+    C = collect(reshape(181:216, 2, 3, 2, 3))
+
+    @test A == reshape(1:72, 2, 3, 2, 3, 2)
+    @cat(A, B)
+    @test A == reshape(1:180, 2, 3, 2, 3, 5)
+    @cat(A, C)
+    @test A == reshape(1:216, 2, 3, 2, 3, 6)
 end

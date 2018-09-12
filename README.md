@@ -51,6 +51,7 @@ To run the following examples, you should set the project (e.g. using `--project
 * `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000000`
 * `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --dbeta 1e-4 --num-links 20 --num-samples 1000000`
 * `julia bin/pes.jl --conf examples/s2m2_coupled.json --num-links 20 --sampling-conf examples/s2m2_simple.json --sampling-beta 43.21 --extent -2,2,-1,1 --out-path pes.pdf --contour`
+* `julia bin/iterative_decomposition.jl --conf examples/s2m2_coupled.json --out-conf decomp.json --out-vs decomp.dat`
 
 
 ## Testing

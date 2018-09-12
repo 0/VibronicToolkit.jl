@@ -1,7 +1,7 @@
 module VibronicToolkit
 
 import LinearAlgebra: diag, isdiag
-using LinearAlgebra: diagm, Diagonal, eigen, eigvals, I, issymmetric,
+using LinearAlgebra: diagm, Diagonal, eigen, eigvals, I, issymmetric, svd,
                      Symmetric, tr
 using Printf: @printf
 using Statistics: mean, std
@@ -13,6 +13,7 @@ using StatsBase: Weights
 
 # We re-export diag and isdiag from LinearAlgebra.
 export
+    DegeneracyException,
     SurfaceCouplingException,
 
     System,
@@ -31,7 +32,9 @@ export
     SamplingPrimitiveThermodynamic,
 
     ground_pes,
-    path_mean_std
+    path_mean_std,
+
+    IterativeDecomposition
 
 """
 Solution for vibronic problem.
@@ -54,5 +57,7 @@ include("sampling_finite_difference.jl")
 include("sampling_primitive_thermodynamic.jl")
 
 include("pes.jl")
+
+include("iterative_decomposition.jl")
 
 end
