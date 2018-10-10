@@ -75,7 +75,7 @@ end
 
 function Base.show(io::IO, sp::SamplingParameters{S,M,P}) where {S,M,P}
     println(io, typeof(sp))
-    println(io, "Sampling parameters with $(P) bead$(P == 1 ? "" : "s") for a system with $(S) surface$(S == 1 ? "" : "s") and $(M) mode$(M == 1 ? "" : "s").")
+    println(io, "Sampling parameters with $(P) link$(P == 1 ? "" : "s") for a system with $(S) surface$(S == 1 ? "" : "s") and $(M) mode$(M == 1 ? "" : "s").")
     println(io, "imaginary time step (tau): $(sp.tau)")
     println(io, "sampling weights:")
     show_vector(io, weights(sp))
