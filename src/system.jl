@@ -115,3 +115,29 @@ end
 Determine whether `sys` is simple (has no quadratic coupling).
 """
 issimple(sys::System) = iszero(sys.quad)
+
+"""
+    potential(sys::System, qs::Vector{Float64})
+
+Compute the potential matrix (full Hamiltonian without kinetic energy) for
+`sys` at `qs`.
+"""
+function potential(sys::System{S,M}, qs::Vector{Float64}) where {S,M}
+    V = copy(sys.energy)
+    for s1 in 1:S
+        for s2 in 1:S
+            for m in 1:M
+                if s1 == s2
+                    V[s2, s1] += 0.5 * sys.freq[m] * qs[m]^2
+                end
+                V[s2, s1] += sys.lin[m, s2, s1] * qs[m]
+            end
+            for m1 in 1:M
+                for m2 in 1:M
+                    V[s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
+                end
+            end
+        end
+    end
+    Symmetric(V)
+end
