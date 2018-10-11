@@ -26,15 +26,17 @@ sys = read(c[:conf], DenseSystem)
 beta = c[:beta]
 
 if c[:uncoupled]
-    analytical = Analytical(simplify(diag(sys)), beta)
+    sys = simplify(diag(sys))
 else
     try
-        global analytical = Analytical(DiagonalSystem(sys), beta)
+        global sys = DiagonalSystem(sys)
     catch ex
         ex isa SurfaceCouplingException || rethrow()
         error("Analytical solution only applies to uncoupled systems")
     end
 end
+
+analytical = Analytical(sys, beta)
 
 println("Z: $(analytical.Z)")
 println("E: $(analytical.E)")
