@@ -33,6 +33,9 @@ s.autofix_names = true
     "--sampling-conf"
         metavar = "FILE"
         help = "path to sampling config file"
+    "--quiet"
+        help = "suppress progress meter"
+        action = :store_true
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
@@ -50,11 +53,16 @@ if c[:sampling_conf] !== nothing
 else
     sampling_sys = nothing
 end
+if c[:quiet]
+    progress_output=devnull
+else
+    progress_output=stderr
+end
 
 if dbeta !== nothing
-    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys)
+    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
 else
-    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys)
+    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
 end
 
 println("Z: $(sampling.Z) ± $(sampling.Z_err)")
