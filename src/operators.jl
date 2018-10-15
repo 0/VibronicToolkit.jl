@@ -185,32 +185,3 @@ function vectors(basis::Basis{S,M}) where {S,M}
 
     result
 end
-
-"""
-    trial_uniform(basis::Basis)
-
-Generate a vector in `basis` that corresponds to a trial wavefunction that is
-uniform in space and surfaces.
-"""
-function trial_uniform(basis::Basis{S,M}) where {S,M}
-    result = zeros(Float64, basis.dim)
-
-    basis_vectors = vectors(basis)
-    for idx in 1:basis.dim
-        any(isodd, basis_vectors[1:M, idx]) && continue
-
-        k = 1.0
-        for m in 1:M
-            x = 1.0
-            state = basis_vectors[m, idx]
-            for j in 1:(state/2)
-                x *= (state - j + 1) / (4j)
-            end
-            k *= sqrt(4pi) * x
-        end
-
-        result[idx] = sqrt(k)
-    end
-
-    result
-end

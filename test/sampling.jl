@@ -11,9 +11,10 @@ let sys = DenseSystem(test_params...),
 end
 
 let sys = DenseSystem(test_params...),
+    trial = UniformTrialWavefunction(sys),
     beta = 12.34,
     P = 256,
-    sp = PigsSamplingParameters(simplify(diag(sys)), beta, P)
+    sp = PigsSamplingParameters(simplify(diag(sys)), trial, beta, P)
 
     @test sp.tau == beta/P
     @test isapprox(weights(sp), [0.999996583, 3.41696734e-6, 1.16757213e-11])

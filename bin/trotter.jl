@@ -38,7 +38,8 @@ basis_size = c[:basis_size]
 P = c[:num_links]
 
 if c[:pigs]
-    trotter = PigsTrotter(sys, beta, basis_size, P)
+    trial = UniformTrialWavefunction(sys)
+    trotter = PigsTrotter(sys, trial, beta, basis_size, P)
 
     println("Z: $(trotter.Z)")
     println("E: $(trotter.E)")

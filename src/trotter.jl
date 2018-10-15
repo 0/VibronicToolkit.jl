@@ -52,12 +52,12 @@ struct PigsTrotter <: AbstractTrotter
 end
 
 """
-    PigsTrotter(sys::System, beta::Float64, basis_size::Int, P::Int)
+    PigsTrotter(sys::System{S,M}, trial::TrialWavefunction{S,M}, beta::Float64, basis_size::Int, P::Int)
 
-Calculate the solution for `sys` at `beta` with `basis_size` basis functions,
-`P` links, and a uniform (in space and surfaces) trial wavefunction.
+Calculate the solution for `sys` with `trial` propagated by `beta` using
+`basis_size` basis functions and `P` links.
 """
-function PigsTrotter(sys::System, beta::Float64, basis_size::Int, P::Int)
+function PigsTrotter(sys::System{S,M}, trial::TrialWavefunction{S,M}, beta::Float64, basis_size::Int, P::Int) where {S,M}
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 
@@ -68,11 +68,10 @@ function PigsTrotter(sys::System, beta::Float64, basis_size::Int, P::Int)
     # Full path.
     path = rho^P
 
-    # Uniform trial wavefunction.
-    trial = trial_uniform(basis)
+    trial_vec = trial_mode(trial, basis)
 
-    Z = dot(trial, path * trial)
-    E = dot(trial, path * (h0 + V) * trial) / Z
+    Z = dot(trial_vec, path * trial_vec)
+    E = dot(trial_vec, path * (h0 + V) * trial_vec) / Z
 
     PigsTrotter(Z, E)
 end

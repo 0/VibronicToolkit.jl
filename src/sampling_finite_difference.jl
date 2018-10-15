@@ -68,8 +68,8 @@ end
 """
     SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
 
-Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
-random samples, using finite difference step `dbeta`.
+Calculate the solution for `sys` at `beta` using `P` links, `num_samples`
+random samples, and finite difference step `dbeta`.
 
 If `sampling_sys` is provided, it is used for sampling. Otherwise, sampling
 defaults to the simplified diagonal subsystem of `sys`.

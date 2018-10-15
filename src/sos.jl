@@ -20,7 +20,7 @@ end
 """
     SumOverStates(sys::System, beta::Float64, basis_size::Int)
 
-Calculate the solution for `sys` at `beta` with `basis_size` basis functions.
+Calculate the solution for `sys` at `beta` using `basis_size` basis functions.
 """
 function SumOverStates(sys::System, beta::Float64, basis_size::Int)
     basis = Basis(sys, basis_size)
@@ -49,12 +49,12 @@ struct PigsSumOverStates <: AbstractSumOverStates
 end
 
 """
-    PigsSumOverStates(sys::System, beta::Float64, basis_size::Int)
+    PigsSumOverStates(sys::System{S,M}, trial::TrialWavefunction{S,M}, beta::Float64, basis_size::Int)
 
-Calculate the solution for `sys` at `beta` with `basis_size` basis functions
-and a uniform (in space and surfaces) trial wavefunction.
+Calculate the solution for `sys` with `trial` propagated by `beta` using
+`basis_size` basis functions.
 """
-function PigsSumOverStates(sys::System, beta::Float64, basis_size::Int)
+function PigsSumOverStates(sys::System{S,M}, trial::TrialWavefunction{S,M}, beta::Float64, basis_size::Int) where {S,M}
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 
@@ -62,12 +62,10 @@ function PigsSumOverStates(sys::System, beta::Float64, basis_size::Int)
     Es = F.values
     Vs = F.vectors
 
-    # Uniform trial wavefunction represented in the eigenbasis of the
-    # Hamiltonian.
-    trial = Vs' * trial_uniform(basis)
+    trial_vec = Vs' * trial_mode(trial, basis)
 
-    Z = sum(exp.(-beta * Es) .* abs2.(trial))
-    E = sum(exp.(-beta * Es) .* Es .* abs2.(trial)) / Z
+    Z = sum(exp.(-beta * Es) .* abs2.(trial_vec))
+    E = sum(exp.(-beta * Es) .* Es .* abs2.(trial_vec)) / Z
     E0_exact = Es[1]
 
     PigsSumOverStates(Z, E, E0_exact)

@@ -93,7 +93,7 @@ end
 """
     SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
 
-Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
+Calculate the solution for `sys` at `beta` using `P` links and `num_samples`
 random samples.
 
 If `sampling_sys` is provided, it is used for sampling. Otherwise, sampling

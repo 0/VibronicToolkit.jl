@@ -10,10 +10,11 @@ let sys = DenseSystem(test_params...),
 end
 
 let sys = DenseSystem(test_params...),
+    trial = UniformTrialWavefunction(sys),
     beta = 12.34,
     basis_size = 10,
     P = 256,
-    trotter = PigsTrotter(sys, beta, basis_size, P)
+    trotter = PigsTrotter(sys, trial, beta, basis_size, P)
 
     @test isapprox(trotter.Z, 2.70438291e-1)
     @test isapprox(trotter.E, 3.93991391e-1)

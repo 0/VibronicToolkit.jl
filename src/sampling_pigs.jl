@@ -37,9 +37,14 @@ function get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,
     # Average the energy at the two ends.
     num_E = 0.5 * (potential(sys, qs[1, :]) * num + num * potential(sys, qs[end, :]))
 
-    scalar_num = dot(pseudosp.trial, num * pseudosp.trial)
-    scalar_num_E = dot(pseudosp.trial, num_E * pseudosp.trial)
-    scalar_denom = dot(sp.trial, denom * sp.trial)
+    trial_vec_num_L = trial_spatial(pseudosp.trial, qs[1, :])
+    trial_vec_num_R = trial_spatial(pseudosp.trial, qs[end, :])
+    trial_vec_denom_L = trial_spatial(sp.trial, qs[1, :])
+    trial_vec_denom_R = trial_spatial(sp.trial, qs[end, :])
+
+    scalar_num = dot(trial_vec_num_L, num * trial_vec_num_R)
+    scalar_num_E = dot(trial_vec_num_L, num_E * trial_vec_num_R)
+    scalar_denom = dot(trial_vec_denom_L, denom * trial_vec_denom_R)
 
     [scalar_num/scalar_denom,
      scalar_num_E/scalar_denom]
@@ -60,23 +65,24 @@ struct PigsSampling <: Sampling
 end
 
 """
-    PigsSampling(sys::System, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
+    PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
 
-Calculate the solution for `sys` at `beta` with `P` links, `num_samples` random
-samples, and a uniform (in space and surfaces) trial wavefunction.
+Calculate the solution for `sys` with `trial` propagated by `beta` using `P`
+links and `num_samples` random samples.
 
 If `sampling_sys` is provided, it is used for sampling. Otherwise, sampling
 defaults to the simplified diagonal subsystem of `sys`.
 
 The progress meter is written to `progress_output`.
 """
-function PigsSampling(sys::System, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
+function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_trial::Maybe{TrialWavefunction}=nothing, progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
-    pseudosp = PigsSamplingParameters(sys_diag_simple, beta, P)
+    pseudosp = PigsSamplingParameters(sys_diag_simple, trial, beta, P)
 
     sampling_sys === nothing && (sampling_sys = sys_diag_simple)
-    sp = PigsSamplingParameters(sampling_sys, beta, P)
+    sampling_trial === nothing && (sampling_trial = trial)
+    sp = PigsSamplingParameters(sampling_sys, sampling_trial, beta, P)
 
     samples = zeros(Float64, 2, num_samples)
     meter = Progress(num_samples, output=progress_output)
@@ -84,7 +90,7 @@ function PigsSampling(sys::System, beta::Float64, P::Int, num_samples::Int; samp
         samples[:, n] .= get_sample_pigs(sys, pseudosp, sp)
     end
 
-    simple = PigsAnalytical(sampling_sys, beta)
+    simple = PigsAnalytical(sampling_sys, sampling_trial, beta)
     normalization = simple.Z
 
     f_E(samples, samples_E) =

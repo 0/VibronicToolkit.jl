@@ -8,8 +8,9 @@ let sys = DiagonalSystem(test_params_diag...),
 end
 
 let sys = DiagonalSystem(test_params_diag...),
+    trial = UniformTrialWavefunction(sys),
     beta = 12.34,
-    analytical = PigsAnalytical(sys, beta)
+    analytical = PigsAnalytical(sys, trial, beta)
 
     @test isapprox(analytical.Z, 8.70719401e-8)
     @test isapprox(analytical.E, 1.52249605e0)

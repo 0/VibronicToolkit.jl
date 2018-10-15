@@ -25,6 +25,9 @@ export
     simplify,
     weights,
 
+    TrialWavefunction,
+    UniformTrialWavefunction,
+
     Analytical,
     SumOverStates,
     Trotter,
@@ -50,6 +53,7 @@ include("utilities.jl")
 
 include("system.jl")
 include("operators.jl")
+include("trial.jl")
 
 include("jackknife.jl")
 

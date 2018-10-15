@@ -32,7 +32,8 @@ beta = c[:beta]
 basis_size = c[:basis_size]
 
 if c[:pigs]
-    sos = PigsSumOverStates(sys, beta, basis_size)
+    trial = UniformTrialWavefunction(sys)
+    sos = PigsSumOverStates(sys, trial, beta, basis_size)
 
     println("Z: $(sos.Z)")
     println("E: $(sos.E)")

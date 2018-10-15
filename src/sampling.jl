@@ -93,6 +93,7 @@ Sampling parameters for a particular PIGS system.
 """
 struct PigsSamplingParameters{S,M,P} <: AbstractSamplingParameters{S,M,P}
     sys::DiagonalSystem{S,M}
+    trial::TrialWavefunction{S,M}
 
     "Imaginary time step."
     tau::Float64
@@ -110,24 +111,20 @@ struct PigsSamplingParameters{S,M,P} <: AbstractSamplingParameters{S,M,P}
     Ss::Matrix{Float64}
     "Precomputed products of sinh factors (S)."
     S_prods::Vector{Float64}
-
-    "Trial wavefunction vector (S)."
-    trial::Vector{Float64}
 end
 
 """
-    PigsSamplingParameters(sys::DiagonalSystem, beta::Float64, P::Int)
+    PigsSamplingParameters(sys::DiagonalSystem{S,M}, trial::UniformTrialWavefunction{S,M}, beta::Float64, P::Int)
 
-Generate sampling parameters for `sys` at `beta` with `P` links and a uniform
-(in space and surfaces) trial wavefunction
+Generate sampling parameters for `sys` with `trial` propagated by `beta` using
+`P` links.
 """
-function PigsSamplingParameters(sys::DiagonalSystem{S,M}, beta::Float64, P::Int) where {S,M}
+function PigsSamplingParameters(sys::DiagonalSystem{S,M}, trial::UniformTrialWavefunction{S,M}, beta::Float64, P::Int) where {S,M}
     issimple(sys) || throw(DomainError(:sys, "System for sampling must be simple."))
 
     tau = beta / P
-    trial = ones(S)
 
-    Zas = abs2.(trial)
+    Zas = abs2.(trial.surface_coefs)
     for s in 1:S
         for m in 1:M
             Zas[s] *= sqrt(2pi / sinh(beta * sys.freq[m, s]))
@@ -163,7 +160,7 @@ function PigsSamplingParameters(sys::DiagonalSystem{S,M}, beta::Float64, P::Int)
         end
     end
 
-    PigsSamplingParameters{S,M,P}(sys, tau, weights, precs, mvns, Cs, Ss, S_prods, trial)
+    PigsSamplingParameters{S,M,P}(sys, trial, tau, weights, precs, mvns, Cs, Ss, S_prods)
 end
 
 function Base.show(io::IO, sp::PigsSamplingParameters{S,M,P}) where {S,M,P}

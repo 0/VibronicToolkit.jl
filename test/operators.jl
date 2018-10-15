@@ -1,5 +1,4 @@
-using VibronicToolkit: a, Basis, id, mkid, mkop, n, operators, q,
-                       trial_uniform, vectors
+using VibronicToolkit: a, Basis, id, mkid, mkop, n, operators, q, vectors
 
 using LinearAlgebra: I
 
@@ -48,14 +47,4 @@ let sys = DenseSystem(test_params_trivial...),
     vector2[25] = sqrt(2.0)^2
     @test vector2 == kron(Matrix(I, test_S, test_S),
                           mkop(basis, a, 2)^2 * mkop(basis, a, 1)') * vector1
-
-    @test isapprox(trial_uniform(basis), [3.54490770, 0.0, 2.50662827, 0.0,
-                                          0.0, 0.0, 2.50662827, 0.0,
-                                          1.77245385,
-                                          3.54490770, 0.0, 2.50662827, 0.0,
-                                          0.0, 0.0, 2.50662827, 0.0,
-                                          1.77245385,
-                                          3.54490770, 0.0, 2.50662827, 0.0,
-                                          0.0, 0.0, 2.50662827, 0.0,
-                                          1.77245385])
 end

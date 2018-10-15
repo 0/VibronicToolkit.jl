@@ -40,7 +40,8 @@ else
 end
 
 if c[:pigs]
-    analytical = PigsAnalytical(sys, beta)
+    trial = UniformTrialWavefunction(sys)
+    analytical = PigsAnalytical(sys, trial, beta)
 
     println("Z: $(analytical.Z)")
     println("E: $(analytical.E)")

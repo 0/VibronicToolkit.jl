@@ -78,12 +78,11 @@ struct PigsAnalytical <: AbstractAnalytical
 end
 
 """
-    PigsAnalytical(sys::DiagonalSystem, beta::Float64)
+    PigsAnalytical(sys::DiagonalSystem{S,M}, trial::UniformTrialWavefunction{S,M}, beta::Float64)
 
-Calculate the solution for `sys` at `beta` with a uniform (in space and
-surfaces) trial wavefunction.
+Calculate the solution for `sys` with `trial` propagated by `beta`.
 """
-function PigsAnalytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
+function PigsAnalytical(sys::DiagonalSystem{S,M}, trial::UniformTrialWavefunction{S,M}, beta::Float64) where {S,M}
     Zs = exp.(-beta * diag(sys.energy))
     Es = zero(Zs)
 
@@ -103,6 +102,8 @@ function PigsAnalytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
 
         Es[s] += E_
     end
+
+    Zs .*= abs2.(trial.surface_coefs)
 
     Z = sum(Zs)
     E = sum(Es .* Zs / Z)
