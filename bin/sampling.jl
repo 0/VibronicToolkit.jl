@@ -33,10 +33,6 @@ s.autofix_names = true
     "--sampling-conf"
         metavar = "FILE"
         help = "path to sampling config file"
-    "--sampling-beta"
-        metavar = "T"
-        help = "sampling reciprocal temperature"
-        arg_type = Float64
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
@@ -54,12 +50,11 @@ if c[:sampling_conf] !== nothing
 else
     sampling_sys = nothing
 end
-sampling_beta = c[:sampling_beta]
 
 if dbeta !== nothing
-    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, sampling_beta=sampling_beta)
+    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys)
 else
-    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys, sampling_beta=sampling_beta)
+    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys)
 end
 
 println("Z: $(sampling.Z) ± $(sampling.Z_err)")

@@ -65,18 +65,17 @@ struct SamplingFiniteDifference <: Sampling
 end
 
 """
-    SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_beta::Maybe{Float64}=nothing, progress_output::IO=stderr)
+    SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
 
 Calculate the solution for `sys` at `beta` with `P` links and `num_samples`
 random samples, using finite difference step `dbeta`.
 
-If `sampling_sys` and `sampling_beta` are provided, they are used for sampling.
-Otherwise, sampling defaults to the simplified diagonal subsystem of `sys` and
-`beta`.
+If `sampling_sys` is provided, it is used for sampling. Otherwise, sampling
+defaults to the simplified diagonal subsystem of `sys`.
 
 The progress meter is written to `progress_output`.
 """
-function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_beta::Maybe{Float64}=nothing, progress_output::IO=stderr)
+function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
     pseudosp = SamplingParameters(sys_diag_simple, beta, P)
@@ -84,8 +83,7 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     pseudosp_p = SamplingParameters(sys_diag_simple, beta+dbeta, P)
 
     sampling_sys === nothing && (sampling_sys = sys_diag_simple)
-    sampling_beta === nothing && (sampling_beta = beta)
-    sp = SamplingParameters(sampling_sys, sampling_beta, P)
+    sp = SamplingParameters(sampling_sys, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
     meter = Progress(num_samples, output=progress_output)
