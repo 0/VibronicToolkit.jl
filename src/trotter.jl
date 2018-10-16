@@ -58,6 +58,8 @@ Calculate the solution for `sys` with `trial` propagated by `beta` using
 `basis_size` basis functions and `P` links.
 """
 function PigsTrotter(sys::System{S,M}, trial::TrialWavefunction{S,M}, beta::Float64, basis_size::Int, P::Int) where {S,M}
+    P % 2 == 0 || throw(DomainError(P, "Number of links must be even."))
+
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 

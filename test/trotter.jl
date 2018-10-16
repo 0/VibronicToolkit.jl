@@ -18,4 +18,6 @@ let sys = DenseSystem(test_params...),
 
     @test isapprox(trotter.Z, 2.70438291e-1)
     @test isapprox(trotter.E, 3.93991391e-1)
+
+    @test_throws DomainError PigsTrotter(sys, trial, beta, basis_size, P+1)
 end

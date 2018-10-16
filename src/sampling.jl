@@ -121,6 +121,7 @@ Generate sampling parameters for `sys` with `trial` propagated by `beta` using
 """
 function PigsSamplingParameters(sys::DiagonalSystem{S,M}, trial::UniformTrialWavefunction{S,M}, beta::Float64, P::Int) where {S,M}
     issimple(sys) || throw(DomainError(:sys, "System for sampling must be simple."))
+    P % 2 == 0 || throw(DomainError(P, "Number of links must be even."))
 
     tau = beta / P
 

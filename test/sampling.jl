@@ -18,4 +18,6 @@ let sys = DenseSystem(test_params...),
 
     @test sp.tau == beta/P
     @test isapprox(weights(sp), [0.999996583, 3.41696734e-6, 1.16757213e-11])
+
+    @test_throws DomainError PigsSamplingParameters(simplify(diag(sys)), trial, beta, P+1)
 end
