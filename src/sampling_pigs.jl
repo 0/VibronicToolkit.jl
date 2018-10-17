@@ -93,8 +93,8 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
     simple = PigsAnalytical(sampling_sys, sampling_trial, beta)
     normalization = simple.Z
 
-    f_E(samples, samples_E) =
-        samples_E ./ samples
+    f_E(sample, sample_E) =
+        sample_E / sample
 
     Z = mean(samples[1, :]) * normalization
     Z_err = std(samples[1, :]) / sqrt(num_samples) * normalization

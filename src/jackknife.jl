@@ -16,19 +16,16 @@ function jackknife(f, xss...)
     all(lengths .== N) || throw(DomainError(lengths, "Uniform length."))
 
     # Regular averages.
-    xss_mean = Float64[]
-    for xs in xss
-        push!(xss_mean, mean(xs))
-    end
+    xss_mean = [mean(xs) for xs in xss]
+    f_plain = f(xss_mean...)
 
     # "All-but-one" averages.
-    xss_J = Array{Float64,1}[]
-    for xs in xss
-        push!(xss_J, (sum(xs) .- xs) / (N - 1))
+    sums = [sum(xs) for xs in xss]
+    f_Js = Vector{Float64}(undef, N)
+    for n in 1:N
+        xss_J = [(s - xs[n]) / (N - 1) for (s, xs) in zip(sums, xss)]
+        f_Js[n] = f(xss_J...)
     end
-
-    f_plain = f(xss_mean...)
-    f_Js = f(xss_J...)
 
     # Unbiased mean.
     f_J = N * f_plain - (N - 1) * mean(f_Js)

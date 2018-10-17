@@ -99,13 +99,13 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     Zrat_p = simple.Z / simple_p.Z
     normalization = simple.Z
 
-    f_E(samples, samples_m, samples_p) =
-        simple.E .+
-        1.0/(2dbeta) * (Zrat_m * samples_m .- Zrat_p * samples_p) ./ samples
-    f_Cv(samples, samples_m, samples_p) =
-        simple.Cv .+
-        (1.0/dbeta^2 * (Zrat_m * samples_m .+ Zrat_p * samples_p) ./ samples .-
-         2.0/dbeta^2 .-
+    f_E(sample, sample_m, sample_p) =
+        simple.E +
+        1.0/(2dbeta) * (Zrat_m * sample_m - Zrat_p * sample_p) / sample
+    f_Cv(sample, sample_m, sample_p) =
+        simple.Cv +
+        (1.0/dbeta^2 * (Zrat_m * sample_m + Zrat_p * sample_p) / sample -
+         2.0/dbeta^2 -
          (E - simple.E)^2) * beta^2
 
     Z = mean(samples[1, :]) * normalization
