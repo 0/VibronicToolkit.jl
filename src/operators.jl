@@ -142,3 +142,75 @@ function operators(basis::Basis{S,M}, sys::System{S,M}) where {S,M}
 
     h0, V
 end
+
+"""
+    vectors(basis::Basis{S,M})
+
+Generate an array of basis vectors for `basis` in the order corresponding to
+the layout of the operator matrices.
+
+Each column is a basis vector, with the first `M` values giving the (0-indexed)
+state labels of the modes, and the final value giving the (1-indexed) surface
+label.
+"""
+function vectors(basis::Basis{S,M}) where {S,M}
+    result = Array{Int}(undef, M+1, basis.dim)
+
+    conf = zeros(Int, M)
+    idx = 1
+    for s in 1:S
+        first = true
+        while true
+            for m in M:-1:1
+                !first && (conf[m] += 1)
+                if conf[m] < basis.size
+                    break
+                else
+                    conf[m] = 0
+                end
+            end
+            if first
+                first = false
+            elseif iszero(conf)
+                break
+            end
+
+            result[1:M, idx] .= conf
+            result[M+1, idx] = s
+
+            idx += 1
+        end
+    end
+    idx-1 == basis.dim || @warn "Invalid number of basis vectors: $(idx-1)"
+
+    result
+end
+
+"""
+    trial_uniform(basis::Basis)
+
+Generate a vector in `basis` that corresponds to a trial wavefunction that is
+uniform in space and surfaces.
+"""
+function trial_uniform(basis::Basis{S,M}) where {S,M}
+    result = zeros(Float64, basis.dim)
+
+    basis_vectors = vectors(basis)
+    for idx in 1:basis.dim
+        any(isodd, basis_vectors[1:M, idx]) && continue
+
+        k = 1.0
+        for m in 1:M
+            x = 1.0
+            state = basis_vectors[m, idx]
+            for j in 1:(state/2)
+                x *= (state - j + 1) / (4j)
+            end
+            k *= sqrt(4pi) * x
+        end
+
+        result[idx] = sqrt(k)
+    end
+
+    result
+end

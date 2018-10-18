@@ -1,4 +1,5 @@
-# Monte Carlo solution with finite difference estimators.
+# Monte Carlo solution for finite temperature with finite difference
+# estimators.
 
 """
     get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{S,M,P}}, sp::SamplingParameters{S_,M,P})

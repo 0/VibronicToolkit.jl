@@ -7,6 +7,9 @@ using ArgParse
 s = ArgParseSettings()
 s.autofix_names = true
 @add_arg_table s begin
+    "--pigs"
+        help = "use PIGS instead of finite temperature"
+        action = :store_true
     "--conf"
         metavar = "FILE"
         help = "path to config file"
@@ -36,8 +39,15 @@ else
     end
 end
 
-analytical = Analytical(sys, beta)
+if c[:pigs]
+    analytical = PigsAnalytical(sys, beta)
 
-println("Z: $(analytical.Z)")
-println("E: $(analytical.E)")
-println("Cv: $(analytical.Cv)")
+    println("Z: $(analytical.Z)")
+    println("E: $(analytical.E)")
+else
+    analytical = Analytical(sys, beta)
+
+    println("Z: $(analytical.Z)")
+    println("E: $(analytical.E)")
+    println("Cv: $(analytical.Cv)")
+end

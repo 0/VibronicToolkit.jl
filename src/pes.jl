@@ -26,7 +26,7 @@ end
     path_mean_std(sys::DiagonalSystem, beta::Float64, P::Int, s::Int, m::Int)
 
 Compute the standard deviation of the mean of the path for surface `s` and mode
-`m` in `sp`.
+`m` in `sp` at finite temperature.
 """
 function path_mean_std(sys::DiagonalSystem{S,M}, beta::Float64, P::Int, s::Int, m::Int) where {S,M}
     1 <= s <= S || throw(DomainError(s, "Invalid surface index."))

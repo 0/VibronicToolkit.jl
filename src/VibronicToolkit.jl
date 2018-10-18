@@ -1,7 +1,7 @@
 module VibronicToolkit
 
 import LinearAlgebra: diag, isdiag
-using LinearAlgebra: diagm, Diagonal, eigen, eigvals, I, issymmetric, svd,
+using LinearAlgebra: diagm, Diagonal, dot, eigen, eigvals, I, issymmetric, svd,
                      Symmetric, tr
 using Printf: @printf
 using Statistics: mean, std
@@ -31,6 +31,11 @@ export
     SamplingFiniteDifference,
     SamplingPrimitiveThermodynamic,
 
+    PigsAnalytical,
+    PigsSumOverStates,
+    PigsTrotter,
+    PigsSampling,
+
     ground_pes,
     path_mean_std,
 
@@ -54,6 +59,7 @@ include("trotter.jl")
 
 include("sampling.jl")
 include("sampling_finite_difference.jl")
+include("sampling_pigs.jl")
 include("sampling_primitive_thermodynamic.jl")
 
 include("pes.jl")

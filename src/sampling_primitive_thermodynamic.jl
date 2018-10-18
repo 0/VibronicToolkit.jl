@@ -1,4 +1,5 @@
-# Monte Carlo solution with primitive thermodynamic estimators.
+# Monte Carlo solution for finite temperature with primitive thermodynamic
+# estimators.
 
 """
     get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp::SamplingParameters{S_,M,P})

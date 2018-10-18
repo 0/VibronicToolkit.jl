@@ -1,4 +1,5 @@
-using VibronicToolkit: a, Basis, id, mkid, mkop, n, operators, q
+using VibronicToolkit: a, Basis, id, mkid, mkop, n, operators, q,
+                       trial_uniform, vectors
 
 using LinearAlgebra: I
 
@@ -35,4 +36,26 @@ let sys = DenseSystem(test_params_trivial...),
         end
     end
     @test V == V_exp
+
+    Vs = vectors(basis)
+    conf1 = Vs[:, 24]
+    @test conf1 == [1, 2, 3]
+    vector1 = zeros(basis.dim)
+    vector1[24] = 1.0
+    conf2 = Vs[:, 25]
+    @test conf2 == [2, 0, 3]
+    vector2 = zeros(basis.dim)
+    vector2[25] = sqrt(2.0)^2
+    @test vector2 == kron(Matrix(I, test_S, test_S),
+                          mkop(basis, a, 2)^2 * mkop(basis, a, 1)') * vector1
+
+    @test isapprox(trial_uniform(basis), [3.54490770, 0.0, 2.50662827, 0.0,
+                                          0.0, 0.0, 2.50662827, 0.0,
+                                          1.77245385,
+                                          3.54490770, 0.0, 2.50662827, 0.0,
+                                          0.0, 0.0, 2.50662827, 0.0,
+                                          1.77245385,
+                                          3.54490770, 0.0, 2.50662827, 0.0,
+                                          0.0, 0.0, 2.50662827, 0.0,
+                                          1.77245385])
 end

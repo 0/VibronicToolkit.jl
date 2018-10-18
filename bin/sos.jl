@@ -7,6 +7,9 @@ using ArgParse
 s = ArgParseSettings()
 s.autofix_names = true
 @add_arg_table s begin
+    "--pigs"
+        help = "use PIGS instead of finite temperature"
+        action = :store_true
     "--conf"
         metavar = "FILE"
         help = "path to config file"
@@ -28,8 +31,16 @@ sys = read(c[:conf], DenseSystem)
 beta = c[:beta]
 basis_size = c[:basis_size]
 
-sos = SumOverStates(sys, beta, basis_size)
+if c[:pigs]
+    sos = PigsSumOverStates(sys, beta, basis_size)
 
-println("Z: $(sos.Z)")
-println("E: $(sos.E)")
-println("Cv: $(sos.Cv)")
+    println("Z: $(sos.Z)")
+    println("E: $(sos.E)")
+    println("E0_exact: $(sos.E0_exact)")
+else
+    sos = SumOverStates(sys, beta, basis_size)
+
+    println("Z: $(sos.Z)")
+    println("E: $(sos.E)")
+    println("Cv: $(sos.Cv)")
+end

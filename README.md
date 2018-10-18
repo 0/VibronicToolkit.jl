@@ -45,11 +45,23 @@ to create `bin/Manifest.toml` with a development version of `VibronicToolkit`.
 
 To run the following examples, you should set the project (e.g. using `--project` or `JULIA_PROJECT`) to a Julia project that has the prerequisites installed.
 
+### Finite temperature
+
 * `julia bin/analytical.jl --conf examples/s2m2_uncoupled.json --beta 43.21`
 * `julia bin/sos.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30`
 * `julia bin/trotter.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30 --num-links 20`
 * `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000000`
 * `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --dbeta 1e-4 --num-links 20 --num-samples 1000000`
+
+### PIGS
+
+* `julia bin/analytical.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21`
+* `julia bin/sos.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30`
+* `julia bin/trotter.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30 --num-links 20`
+* `julia bin/sampling.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000000`
+
+### Utilities
+
 * `julia bin/pes.jl --conf examples/s2m2_coupled.json --num-links 20 --sampling-conf examples/s2m2_simple.json --sampling-beta 43.21 --extent -2,2,-1,1 --out-path pes.pdf --contour`
 * `julia bin/iterative_decomposition.jl --conf examples/s2m2_coupled.json --out-conf decomp.json --out-vs decomp.dat`
 

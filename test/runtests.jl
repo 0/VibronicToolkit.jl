@@ -85,6 +85,7 @@ test_params_sym3 = (test_energy_sym, test_freq_flat, test_lin_sym3, test_quad_sy
 
     @testset "sampling.jl" begin include("sampling.jl") end
     @testset "sampling_finite_difference.jl" begin include("sampling_finite_difference.jl") end
+    @testset "sampling_pigs.jl" begin include("sampling_pigs.jl") end
     @testset "sampling_primitive_thermodynamic.jl" begin include("sampling_primitive_thermodynamic.jl") end
 
     @testset "pes.jl" begin include("pes.jl") end

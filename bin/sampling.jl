@@ -7,6 +7,9 @@ using ArgParse
 s = ArgParseSettings()
 s.autofix_names = true
 @add_arg_table s begin
+    "--pigs"
+        help = "use PIGS instead of finite temperature"
+        action = :store_true
     "--conf"
         metavar = "FILE"
         help = "path to config file"
@@ -59,12 +62,23 @@ else
     progress_output=stderr
 end
 
-if dbeta !== nothing
-    sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
-else
-    sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
-end
+if c[:pigs]
+    if dbeta !== nothing
+        error("Finite difference not supported for PIGS")
+    else
+        sampling = PigsSampling(sys, beta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
+    end
 
-println("Z: $(sampling.Z) ± $(sampling.Z_err)")
-println("E: $(sampling.E) ± $(sampling.E_err)")
-println("Cv: $(sampling.Cv) ± $(sampling.Cv_err)")
+    println("Z: $(sampling.Z) ± $(sampling.Z_err)")
+    println("E: $(sampling.E) ± $(sampling.E_err)")
+else
+    if dbeta !== nothing
+        sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
+    else
+        sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
+    end
+
+    println("Z: $(sampling.Z) ± $(sampling.Z_err)")
+    println("E: $(sampling.E) ± $(sampling.E_err)")
+    println("Cv: $(sampling.Cv) ± $(sampling.Cv_err)")
+end

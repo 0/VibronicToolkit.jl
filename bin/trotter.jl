@@ -7,6 +7,9 @@ using ArgParse
 s = ArgParseSettings()
 s.autofix_names = true
 @add_arg_table s begin
+    "--pigs"
+        help = "use PIGS instead of finite temperature"
+        action = :store_true
     "--conf"
         metavar = "FILE"
         help = "path to config file"
@@ -34,8 +37,15 @@ beta = c[:beta]
 basis_size = c[:basis_size]
 P = c[:num_links]
 
-trotter = Trotter(sys, beta, basis_size, P)
+if c[:pigs]
+    trotter = PigsTrotter(sys, beta, basis_size, P)
 
-println("Z: $(trotter.Z)")
-println("E: $(trotter.E)")
-println("Cv: $(trotter.Cv)")
+    println("Z: $(trotter.Z)")
+    println("E: $(trotter.E)")
+else
+    trotter = Trotter(sys, beta, basis_size, P)
+
+    println("Z: $(trotter.Z)")
+    println("E: $(trotter.E)")
+    println("Cv: $(trotter.Cv)")
+end

@@ -3,7 +3,12 @@
 """
 Exact solution for an uncoupled system.
 """
-struct Analytical <: Solution
+abstract type AbstractAnalytical <: Solution end
+
+"""
+Exact solution for an uncoupled system at finite temperature.
+"""
+struct Analytical <: AbstractAnalytical
     "Partition function."
     Z::Float64
     "Energy."
@@ -13,7 +18,7 @@ struct Analytical <: Solution
 end
 
 """
-    Analytical(sys::DiagonalSystem{S,M}, beta::Float64)
+    Analytical(sys::DiagonalSystem, beta::Float64)
 
 Calculate the solution for `sys` at `beta`.
 """
@@ -23,17 +28,7 @@ function Analytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
     E2s = zero(Zs)
 
     for s in 1:S
-        # Find the normal mode frequencies for this surface.
-        freq_sqrt = sqrt.(sys.freq[:, s])
-        lin_p = sys.lin[:, s, s] .* freq_sqrt
-        A = diagm(0 => sys.freq[:, s].^2) + sys.quad[:, :, s, s] .* (freq_sqrt * freq_sqrt')
-        issymmetric(A) || @warn "Asymmetric A"
-        F = eigen(Symmetric(A))
-        any(F.values .< 0) && error("Imaginary normal mode frequencies")
-        lambdas = sqrt.(F.values)
-        T = F.vectors'
-        lin_pp = T * lin_p
-
+        lambdas, lin_pp = normal_modes(sys, s)
         E_ = sys.energy[s, s]
 
         for m in 1:M
@@ -43,7 +38,7 @@ function Analytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
             Zs[s] *= exp(0.5 * beta * (lin_pp[m] / lambdas[m])^2)
             Zs[s] *= x / (1-x^2)
 
-            E1s[s] += lambdas[m] * (x^2+1) / (2 * (1-x^2))
+            E1s[s] += lambdas[m] * (1+x^2) / (2 * (1-x^2))
         end
 
         E1s[s] += E_
@@ -70,4 +65,66 @@ function Analytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
     Cv = (sum(E2s .* Zs / Z) - E^2) * beta^2
 
     Analytical(Z, E, Cv)
+end
+
+"""
+Exact solution for an uncoupled PIGS system.
+"""
+struct PigsAnalytical <: AbstractAnalytical
+    "Pseudo-partition function."
+    Z::Float64
+    "Energy."
+    E::Float64
+end
+
+"""
+    PigsAnalytical(sys::DiagonalSystem, beta::Float64)
+
+Calculate the solution for `sys` at `beta` with a uniform (in space and
+surfaces) trial wavefunction.
+"""
+function PigsAnalytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
+    Zs = exp.(-beta * diag(sys.energy))
+    Es = zero(Zs)
+
+    for s in 1:S
+        lambdas, lin_pp = normal_modes(sys, s)
+        E_ = sys.energy[s, s]
+
+        for m in 1:M
+            x = exp(-beta * lambdas[m])
+            E_ -= 0.5 * (lin_pp[m] / lambdas[m])^2
+
+            Zs[s] *= exp(0.5 * beta * (lin_pp[m] / lambdas[m])^2)
+            Zs[s] *= sqrt(4pi * x / (1-x^2))
+
+            Es[s] += lambdas[m] * (1+x^2) / (2 * (1-x^2))
+        end
+
+        Es[s] += E_
+    end
+
+    Z = sum(Zs)
+    E = sum(Es .* Zs / Z)
+
+    PigsAnalytical(Z, E)
+end
+
+"""
+    normal_modes(sys::DiagonalSystem, s::Int)
+
+Find the normal mode frequencies and linear terms for surface `s` in `sys`.
+"""
+function normal_modes(sys::DiagonalSystem, s::Int)
+    freq_sqrt = sqrt.(sys.freq[:, s])
+    lin_p = sys.lin[:, s, s] .* freq_sqrt
+    A = diagm(0 => sys.freq[:, s].^2) + sys.quad[:, :, s, s] .* (freq_sqrt * freq_sqrt')
+    issymmetric(A) || @warn "Asymmetric A"
+    F = eigen(Symmetric(A))
+    any(F.values .< 0) && error("Imaginary normal mode frequencies")
+    lambdas = sqrt.(F.values)
+    T = F.vectors'
+    lin_pp = T * lin_p
+
+    lambdas, lin_pp
 end
