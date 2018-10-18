@@ -73,6 +73,7 @@ test_params_sym3 = (test_energy_sym, test_freq_flat, test_lin_sym3, test_quad_sy
 
 @testset "VibronicToolkit" begin
     @testset "utilities.jl" begin include("utilities.jl") end
+    @testset "entanglement.jl" begin include("entanglement.jl") end
 
     @testset "system.jl" begin include("system.jl") end
     @testset "operators.jl" begin include("operators.jl") end

@@ -43,6 +43,8 @@ if c[:pigs]
 
     println("Z: $(trotter.Z)")
     println("E: $(trotter.E)")
+    println("SvN: $(trotter.SvN)")
+    println("S2: $(trotter.S2)")
 else
     trotter = Trotter(sys, beta, basis_size, P)
 

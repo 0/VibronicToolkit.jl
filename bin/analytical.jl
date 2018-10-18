@@ -45,6 +45,8 @@ if c[:pigs]
 
     println("Z: $(analytical.Z)")
     println("E: $(analytical.E)")
+    println("SvN: $(analytical.SvN)")
+    println("S2: $(analytical.S2)")
 else
     analytical = Analytical(sys, beta)
 

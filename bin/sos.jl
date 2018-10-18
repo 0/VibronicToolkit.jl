@@ -37,7 +37,12 @@ if c[:pigs]
 
     println("Z: $(sos.Z)")
     println("E: $(sos.E)")
+    println("SvN: $(sos.SvN)")
+    println("S2: $(sos.S2)")
+
     println("E0_exact: $(sos.E0_exact)")
+    println("SvN_exact: $(sos.SvN_exact)")
+    println("S2_exact: $(sos.S2_exact)")
 else
     sos = SumOverStates(sys, beta, basis_size)
 

@@ -16,8 +16,11 @@ function get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,
     end
 
     # Calculate the numerator and denominator matrices.
-    num = Matrix{Float64}(I, S, S)
+    num_L = Matrix{Float64}(I, S, S)
+    num_R = Matrix{Float64}(I, S, S)
     denom = Matrix{Float64}(I, S_, S_)
+
+    middle_bead = P/2 + 1
 
     for i1 in 1:P
         # Next index in open path.
@@ -27,12 +30,19 @@ function get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,
         FM_num, scaling = sampling_matrix_free_particle(pseudosp, qs[i1, :], qs[i2, :])
         _, IM_L = sampling_matrix_interaction(sys, pseudosp, qs[i1, :])
         _, IM_R = sampling_matrix_interaction(sys, pseudosp, qs[i2, :])
-        num *= sqrt(IM_L) * FM_num * sqrt(IM_R)
+
+        if i1 < middle_bead
+            num_L *= sqrt(IM_L) * FM_num * sqrt(IM_R)
+        else
+            num_R *= sqrt(IM_L) * FM_num * sqrt(IM_R)
+        end
 
         # Denominator.
         FM_denom, _ = sampling_matrix_free_particle(sp, qs[i1, :], qs[i2, :]; scaling=scaling)
         denom *= FM_denom
     end
+
+    num = num_L * num_R
 
     # Average the energy at the two ends.
     num_E = 0.5 * (potential(sys, qs[1, :]) * num + num * potential(sys, qs[end, :]))
@@ -46,8 +56,13 @@ function get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,
     scalar_num_E = dot(trial_vec_num_L, num_E * trial_vec_num_R)
     scalar_denom = dot(trial_vec_denom_L, denom * trial_vec_denom_R)
 
+    reduced_density_matrix = (num_R * trial_vec_num_R) * (trial_vec_num_L' * num_L)
+    # Symmetrize.
+    reduced_density_matrix = 0.5 * (reduced_density_matrix + reduced_density_matrix')
+
     [scalar_num/scalar_denom,
-     scalar_num_E/scalar_denom]
+     scalar_num_E/scalar_denom,
+     reduced_density_matrix/scalar_denom]
 end
 
 """
@@ -62,6 +77,14 @@ struct PigsSampling <: Sampling
     E::Float64
     "Energy standard error."
     E_err::Float64
+    "Von Neumann entanglement entropy."
+    SvN::Float64
+    "Von Neumann entanglement entropy standard error."
+    SvN_err::Float64
+    "Order-2 Rényi entanglement entropy."
+    S2::Float64
+    "Order-2 Rényi entanglement entropy standard error."
+    S2_err::Float64
 end
 
 """
@@ -85,9 +108,12 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
     sp = PigsSamplingParameters(sampling_sys, sampling_trial, beta, P)
 
     samples = zeros(Float64, 2, num_samples)
+    rhos = Matrix{Float64}[]
     meter = Progress(num_samples, output=progress_output)
     for n in ProgressWrapper(1:num_samples, meter)
-        samples[:, n] .= get_sample_pigs(sys, pseudosp, sp)
+        sample = get_sample_pigs(sys, pseudosp, sp)
+        samples[:, n] .= sample[1:2]
+        push!(rhos, sample[3])
     end
 
     simple = PigsAnalytical(sampling_sys, sampling_trial, beta)
@@ -95,10 +121,16 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
 
     f_E(sample, sample_E) =
         sample_E / sample
+    f_SvN(sample, rho) =
+        S_vn(rho / sample)
+    f_S2(sample, rho) =
+        S_renyi(rho / sample)
 
     Z = mean(samples[1, :]) * normalization
     Z_err = std(samples[1, :]) / sqrt(num_samples) * normalization
     E, E_err = jackknife(f_E, [samples[n, :] for n in 1:size(samples, 1)]...)
+    SvN, SvN_err = jackknife(f_SvN, samples[1, :], rhos)
+    S2, S2_err = jackknife(f_S2, samples[1, :], rhos)
 
-    PigsSampling(Z, Z_err, E, E_err)
+    PigsSampling(Z, Z_err, E, E_err, SvN, SvN_err, S2, S2_err)
 end

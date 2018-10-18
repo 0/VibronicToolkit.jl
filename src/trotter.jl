@@ -49,6 +49,10 @@ struct PigsTrotter <: AbstractTrotter
     Z::Float64
     "Energy."
     E::Float64
+    "Von Neumann entanglement entropy."
+    SvN::Float64
+    "Order-2 Rényi entanglement entropy."
+    S2::Float64
 end
 
 """
@@ -65,15 +69,23 @@ function PigsTrotter(sys::System{S,M}, trial::TrialWavefunction{S,M}, beta::Floa
 
     # Single Trotter product.
     tau = beta / P
-    rho = exp(-0.5 * tau * V) * exp(-tau * h0) * exp(-0.5 * tau * V)
+    prop = exp(-0.5 * tau * V) * exp(-tau * h0) * exp(-0.5 * tau * V)
 
-    # Full path.
-    path = rho^P
+    # Half path and full path.
+    path_half = prop^div(P, 2)
+    path = path_half^2
 
+    # Trial wavefunction.
     trial_vec = trial_mode(trial, basis)
+
+    # Density matrix and reduced density matrix.
+    rho = (path_half * trial_vec) * (trial_vec' * path_half)
+    rho_surface = ptrace_modes(basis, rho)
 
     Z = dot(trial_vec, path * trial_vec)
     E = dot(trial_vec, path * (h0 + V) * trial_vec) / Z
+    SvN = S_vn(rho_surface / Z)
+    S2 = S_renyi(rho_surface / Z)
 
-    PigsTrotter(Z, E)
+    PigsTrotter(Z, E, SvN, S2)
 end

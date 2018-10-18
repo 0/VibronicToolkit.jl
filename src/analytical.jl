@@ -75,6 +75,10 @@ struct PigsAnalytical <: AbstractAnalytical
     Z::Float64
     "Energy."
     E::Float64
+    "Von Neumann entanglement entropy."
+    SvN::Float64
+    "Order-2 Rényi entanglement entropy."
+    S2::Float64
 end
 
 """
@@ -105,21 +109,40 @@ function PigsAnalytical(sys::DiagonalSystem{S,M}, trial::UniformTrialWavefunctio
 
     Zs .*= abs2.(trial.surface_coefs)
 
+    rho_surface = trial.surface_coefs * trial.surface_coefs'
+    for s1 in 1:S
+        for s2 in 1:S
+            rho_surface[s2, s1] *= exp(-0.5 * beta * (sys.energy[s1, s1] + sys.energy[s2, s2]))
+
+            lambdas, lin_pp = normal_modes(sys, s1, s2)
+
+            for m in 1:M
+                x = exp(-beta * lambdas[m])
+
+                rho_surface[s2, s1] *= exp(0.5 * beta * (lin_pp[m] / lambdas[m])^2)
+                rho_surface[s2, s1] *= sqrt(4pi * x / (1-x^2))
+            end
+        end
+    end
+
     Z = sum(Zs)
     E = sum(Es .* Zs / Z)
+    SvN = S_vn(rho_surface / Z)
+    S2 = S_renyi(rho_surface / Z)
 
-    PigsAnalytical(Z, E)
+    PigsAnalytical(Z, E, SvN, S2)
 end
 
 """
-    normal_modes(sys::DiagonalSystem, s::Int)
+    normal_modes(freq::AbstractVector{Float64}, lin::AbstractVector{Float64}, quad::AbstractMatrix{Float64})
 
-Find the normal mode frequencies and linear terms for surface `s` in `sys`.
+Find the normal mode frequencies and linear terms for the coupled oscillators
+described by `freq`, `lin`, and `quad`.
 """
-function normal_modes(sys::DiagonalSystem, s::Int)
-    freq_sqrt = sqrt.(sys.freq[:, s])
-    lin_p = sys.lin[:, s, s] .* freq_sqrt
-    A = diagm(0 => sys.freq[:, s].^2) + sys.quad[:, :, s, s] .* (freq_sqrt * freq_sqrt')
+function normal_modes(freq::AbstractVector{Float64}, lin::AbstractVector{Float64}, quad::AbstractMatrix{Float64})
+    freq_sqrt = sqrt.(freq)
+    lin_p = lin .* freq_sqrt
+    A = diagm(0 => freq.^2) + quad .* (freq_sqrt * freq_sqrt')
     issymmetric(A) || @warn "Asymmetric A"
     F = eigen(Symmetric(A))
     any(F.values .< 0) && error("Imaginary normal mode frequencies")
@@ -128,4 +151,25 @@ function normal_modes(sys::DiagonalSystem, s::Int)
     lin_pp = T * lin_p
 
     lambdas, lin_pp
+end
+
+"""
+    normal_modes(sys::DiagonalSystem, s::Int)
+
+Find the normal mode frequencies and linear terms for surface `s` in `sys`.
+"""
+function normal_modes(sys::DiagonalSystem, s::Int)
+    normal_modes(sys.freq[:, s], sys.lin[:, s, s], sys.quad[:, :, s, s])
+end
+
+"""
+    normal_modes(sys::DiagonalSystem, s1::Int, s2::Int)
+
+Find the normal mode frequencies and linear terms for the average of surfaces
+`s1` and `s2` in `sys`.
+"""
+function normal_modes(sys::DiagonalSystem, s1::Int, s2::Int)
+    normal_modes(0.5 * (sys.freq[:, s1] + sys.freq[:, s2]),
+                 0.5 * (sys.lin[:, s1, s1] + sys.lin[:, s2, s2]),
+                 0.5 * (sys.quad[:, :, s1, s1] + sys.quad[:, :, s2, s2]))
 end

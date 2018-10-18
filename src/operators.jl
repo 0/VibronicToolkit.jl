@@ -185,3 +185,10 @@ function vectors(basis::Basis{S,M}) where {S,M}
 
     result
 end
+
+"""
+    ptrace_modes(basis::Basis, rho::AbstractMatrix{Float64})
+
+Perform the partial trace over the modes for `rho` in `basis`.
+"""
+ptrace_modes(basis::Basis{S,M}, rho::AbstractMatrix{Float64}) where {S,M} = ptrace(rho, (basis.dim1, S), 1)

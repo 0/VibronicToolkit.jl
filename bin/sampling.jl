@@ -73,6 +73,8 @@ if c[:pigs]
 
     println("Z: $(sampling.Z) ± $(sampling.Z_err)")
     println("E: $(sampling.E) ± $(sampling.E_err)")
+    println("SvN: $(sampling.SvN) ± $(sampling.SvN_err)")
+    println("S2: $(sampling.S2) ± $(sampling.S2_err)")
 else
     if dbeta !== nothing
         sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)

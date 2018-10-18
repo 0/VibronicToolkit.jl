@@ -9,6 +9,7 @@ using Statistics: mean, std
 using Distributions: MvNormal, sample
 import JSON
 using ProgressMeter: Progress, ProgressWrapper
+using Qutilities: ptrace
 using StatsBase: Weights
 
 # We re-export diag and isdiag from LinearAlgebra.
@@ -50,6 +51,7 @@ Solution for vibronic problem.
 abstract type Solution end
 
 include("utilities.jl")
+include("entanglement.jl")
 
 include("system.jl")
 include("operators.jl")
