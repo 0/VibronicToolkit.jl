@@ -62,7 +62,8 @@ To run the following examples, you should set the project (e.g. using `--project
 
 ### Utilities
 
-* `julia bin/pes.jl --conf examples/s2m2_coupled.json --num-links 20 --sampling-conf examples/s2m2_simple.json --sampling-beta 43.21 --extent -2,2,-1,1 --out-path pes.pdf --contour`
+* `julia bin/pes.jl --conf examples/s2m2_coupled.json --sampling-conf examples/s2m2_simple.json --sampling-beta 43.21 --num-links 20 --extent -2,2,-1,1 --out-path pes.pdf --contour`
+* `julia bin/density.jl --conf examples/s2m2_coupled.json --beta 43.21 --basis-size 30 --sampling-conf examples/s2m2_simple.json --num-links 20 --extent -2,2,-1,1 --out-path density.pdf --contour`
 * `julia bin/iterative_decomposition.jl --conf examples/s2m2_coupled.json --out-conf decomp.json --out-vs decomp.dat`
 
 

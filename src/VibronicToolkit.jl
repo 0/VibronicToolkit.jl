@@ -43,6 +43,8 @@ export
     ground_pes,
     path_mean_std,
 
+    diagonal_density,
+
     IterativeDecomposition
 
 """
@@ -69,6 +71,7 @@ include("sampling_pigs.jl")
 include("sampling_primitive_thermodynamic.jl")
 
 include("pes.jl")
+include("density.jl")
 
 include("iterative_decomposition.jl")
 

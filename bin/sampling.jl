@@ -57,9 +57,9 @@ else
     sampling_sys = nothing
 end
 if c[:quiet]
-    progress_output=devnull
+    progress_output = devnull
 else
-    progress_output=stderr
+    progress_output = stderr
 end
 
 if c[:pigs]

@@ -91,6 +91,7 @@ test_params_sym3 = (test_energy_sym, test_freq_flat, test_lin_sym3, test_quad_sy
     @testset "sampling_primitive_thermodynamic.jl" begin include("sampling_primitive_thermodynamic.jl") end
 
     @testset "pes.jl" begin include("pes.jl") end
+    @testset "density.jl" begin include("density.jl") end
 
     @testset "iterative_decomposition.jl" begin include("iterative_decomposition.jl") end
 end

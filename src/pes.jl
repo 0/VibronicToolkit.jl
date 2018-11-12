@@ -1,7 +1,7 @@
 # Ground state potential energy surface.
 
 """
-    ground_pes(sys::System{S,2}, extent::NTuple{4,Float64}; lengths::NTuple{2,Float64}=(501, 501))
+    ground_pes(sys::System{S,2}, extent::NTuple{4,Float64}; lengths::NTuple{2,Int}=(501, 501))
 
 Compute the ground state PES for the 2-mode system `sys`.
 

@@ -12,11 +12,6 @@ s.autofix_names = true
         metavar = "FILE"
         help = "path to config file"
         required = true
-    "--num-links"
-        metavar = "P"
-        help = "number of Trotter links"
-        arg_type = Int
-        required = true
     "--sampling-conf"
         metavar = "FILE"
         help = "path to sampling config file"
@@ -24,6 +19,10 @@ s.autofix_names = true
         metavar = "T"
         help = "sampling reciprocal temperature"
         arg_type = Float64
+    "--num-links"
+        metavar = "P"
+        help = "number of Trotter links"
+        arg_type = Int
     "--extent"
         metavar = "q1_min,q1_max,q2_min,q2_max"
         help = "comma-separated extent values"
@@ -39,12 +38,10 @@ end
 c = parse_args(ARGS, s, as_symbols=true)
 
 sys = read(c[:conf], DenseSystem)
-P = c[:num_links]
-if c[:sampling_conf] !== nothing && c[:sampling_beta] !== nothing
+if c[:sampling_conf] !== nothing
     sampling_sys = read(c[:sampling_conf], DiagonalSystem)
     sampling_beta = c[:sampling_beta]
-elseif c[:sampling_conf] !== nothing || c[:sampling_beta] !== nothing
-    error("Both --sampling-conf and --sampling-beta must be given.")
+    P = c[:num_links]
 end
 extent = Tuple(parse.(Float64, split(c[:extent], ",")))
 out_path = c[:out_path]
@@ -53,9 +50,9 @@ out_path = c[:out_path]
 pes = ground_pes(sys, extent)
 if c[:contour]
     cf = contourf(pes, origin="lower", extent=extent, cmap="magma_r")
-    contour(pes, origin="lower", extent=extent, colors="k", linestyles="solid", linewidths=0.2)
+    contour(pes, origin="lower", extent=extent, colors="0.5", linestyles="solid", linewidths=0.2)
 else
-    cf = imshow(pes, origin="lower", extent=extent, cmap="magma_r")
+    cf = imshow(pes, origin="lower", aspect="auto", extent=extent, cmap="magma_r")
 end
 colorbar(cf)
 
@@ -71,7 +68,8 @@ if c[:sampling_conf] !== nothing
         ellipse_f = plt["matplotlib"]["patches"]["Ellipse"]
         ellipse = ellipse_f(xy=(ds[1,s], ds[2,s]), width=2sigma_1, height=2sigma_2, edgecolor=colors[s], fc="None", linestyle="dotted")
         gca()["add_patch"](ellipse)
-        text(ds[1,s]+0.5, ds[2,s], "$(s)", ha="center", va="center")
+        offset = (extent[2] - extent[1]) / 32
+        text(ds[1,s]+offset, ds[2,s], "$(s)", ha="center", va="center", color="0.5")
     end
 end
 

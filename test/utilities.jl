@@ -1,4 +1,4 @@
-using VibronicToolkit: @cat
+using VibronicToolkit: @cat, hermite, ho_wf
 
 let A = collect(reshape(1:9, 3, 3))
 
@@ -23,6 +23,23 @@ let A = collect(reshape(1:72, 2, 3, 2, 3, 2)),
         @test C[i, j, k] == A[i, j, i, k, i]
     end
     @test_throws DomainError diag(A, 1, 2)
+end
+
+let
+    @testset for x in [-1.23, 0.0, 4.56]
+        @test isapprox(hermite(0, x), 1.0/sqrt(sqrt(pi)))
+        @test isapprox(hermite(1, x), (2x)/sqrt(2*sqrt(pi)))
+        @test isapprox(hermite(2, x), (4x^2-2)/sqrt(8*sqrt(pi)))
+        @test isapprox(hermite(3, x), (8x^3-12x)/sqrt(48*sqrt(pi)))
+    end
+end
+
+let
+    expected = exp(-(1.2^2 + 3.4^2 + 5.6^2)/2) *
+               1.0/sqrt(sqrt(pi)) *
+               (8*3.4^3-12*3.4)/sqrt(48*sqrt(pi)) *
+               (2*(-5.6))/sqrt(2*sqrt(pi))
+    @test isapprox(ho_wf([0, 3, 1], [1.2, 3.4, -5.6]), expected)
 end
 
 let A = collect(reshape(1:72, 2, 3, 2, 3, 2)),

@@ -24,6 +24,36 @@ function diag(A::Array, dim1::Int, dim2::Int)
 end
 
 """
+    hermite(n::Int, q::Float64)
+
+Compute the value `H_n(q)/sqrt(sqrt(pi) 2^n n!)` of the normalized `n`th
+Hermite polynomial at `q`.
+"""
+function hermite(n::Int, q::Float64)
+    h1 = 1.0 / sqrt(sqrt(pi))
+    n == 0 && return h1
+    h2 = 2q / sqrt(2*sqrt(pi))
+    for m in 1:(n-1)
+        h1, h2 = h2, (sqrt(2) * q * h2 - sqrt(m) * h1) / sqrt(m+1)
+    end
+    h2
+end
+
+"""
+    ho_wf(n::Int, q::Float64)
+
+Compute the value of the `n`th harmonic oscillator wavefunction at `q`.
+"""
+ho_wf(n::Int, q::Float64) = exp(-q^2/2) * hermite(n, q)
+
+"""
+    ho_wf(ns::Vector{Int}, qs::Vector{Float64})
+
+Compute the value of the multi-mode harmonic oscillator wavefunction.
+"""
+ho_wf(ns::Vector{Int}, qs::Vector{Float64}) = prod(x -> ho_wf(x...), zip(ns, qs))
+
+"""
     @cat A B
 
 Append `B` along the last dimension of `A`, modifying the binding of `A`.
