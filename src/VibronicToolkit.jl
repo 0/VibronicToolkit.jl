@@ -44,6 +44,7 @@ export
     path_mean_std,
 
     diagonal_density,
+    diagonal_density_pigs,
 
     IterativeDecomposition
 
