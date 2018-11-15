@@ -47,7 +47,8 @@ extent = Tuple(parse.(Float64, split(c[:extent], ",")))
 out_path = c[:out_path]
 
 # Draw PES.
-pes = ground_pes(sys, extent)
+gp = GroundPes(sys, extent)
+pes = gp.pes
 if c[:contour]
     cf = contourf(pes, origin="lower", extent=extent, cmap="magma_r")
     contour(pes, origin="lower", extent=extent, colors="0.5", linestyles="solid", linewidths=0.2)

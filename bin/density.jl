@@ -72,9 +72,11 @@ end
 
 if c[:pigs]
     trial = UniformTrialWavefunction(sys)
-    density_all, density_all_exact = diagonal_density_pigs(sys, trial, beta, basis_size, extent; progress_output=progress_output)
+    dd = PigsDiagonalDensity(sys, trial, beta, basis_size, extent; progress_output=progress_output)
+    density_all, density_all_exact = dd.density, dd.density_exact
 else
-    density_all = diagonal_density(sys, beta, basis_size, extent; progress_output=progress_output)
+    dd = DiagonalDensity(sys, beta, basis_size, extent; progress_output=progress_output)
+    density_all = dd.density
 end
 
 densities = [density_all]

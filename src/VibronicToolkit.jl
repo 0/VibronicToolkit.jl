@@ -40,11 +40,10 @@ export
     PigsTrotter,
     PigsSampling,
 
-    ground_pes,
+    GroundPes,
     path_mean_std,
-
-    diagonal_density,
-    diagonal_density_pigs,
+    DiagonalDensity,
+    PigsDiagonalDensity,
 
     IterativeDecomposition
 
