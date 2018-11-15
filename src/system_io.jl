@@ -3,6 +3,11 @@
 function Base.read(io::IO, ::Type{System})
     data = JSON.parse(io)
 
+    known_keys = ["number of surfaces", "number of modes", "energies",
+                  "frequencies", "linear couplings", "quadratic couplings"]
+    unrecognized_keys = setdiff(keys(data), known_keys)
+    isempty(unrecognized_keys) || @warn "Unrecognized keys: $(unrecognized_keys)."
+
     S = data["number of surfaces"]
     S >= 1 || throw(DomainError(S, "At least 1 surface."))
 
