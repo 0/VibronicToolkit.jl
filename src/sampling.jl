@@ -210,7 +210,7 @@ function sampling_matrix_free_particle(sp::AbstractSamplingParameters{S,M,P}, qs
     FM/scaling, scaling
 end
 
-function sampling_matrix_interaction(sys::System{S,M}, sp::AbstractSamplingParameters{S,M,P}, qs::Vector{Float64}) where {S,M,P}
+function sampling_matrix_interaction(sys::System{S,M}, sp::AbstractSamplingParameters{S,M,P}, qs::Vector{Float64}; prefactor::Float64=1.0) where {S,M,P}
     preIM = zeros(S, S)
     for s1 in 1:S
         # Only build the upper triangle.
@@ -228,7 +228,7 @@ function sampling_matrix_interaction(sys::System{S,M}, sp::AbstractSamplingParam
             end
         end
     end
-    Symmetric(preIM), exp(Symmetric(-sp.tau * preIM))
+    Symmetric(preIM), exp(Symmetric(-prefactor * sp.tau * preIM))
 end
 
 function sampling_matrix_energy(sp::SamplingParameters{S,M,P}, qs1::Vector{Float64}, qs2::Vector{Float64}) where {S,M,P}

@@ -28,13 +28,13 @@ function get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,
 
         # Numerator.
         FM_num, scaling = sampling_matrix_free_particle(pseudosp, qs[i1, :], qs[i2, :])
-        _, IM_L = sampling_matrix_interaction(sys, pseudosp, qs[i1, :])
-        _, IM_R = sampling_matrix_interaction(sys, pseudosp, qs[i2, :])
+        _, IM_L = sampling_matrix_interaction(sys, pseudosp, qs[i1, :]; prefactor=0.5)
+        _, IM_R = sampling_matrix_interaction(sys, pseudosp, qs[i2, :]; prefactor=0.5)
 
         if i1 < middle_bead
-            num_L *= sqrt(IM_L) * FM_num * sqrt(IM_R)
+            num_L *= IM_L * FM_num * IM_R
         else
-            num_R *= sqrt(IM_L) * FM_num * sqrt(IM_R)
+            num_R *= IM_L * FM_num * IM_R
         end
 
         # Denominator.
