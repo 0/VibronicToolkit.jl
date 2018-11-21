@@ -128,7 +128,7 @@ function potential(sys::System{S,M}, qs::Vector{Float64}) where {S,M}
         for s2 in 1:S
             for m in 1:M
                 if s1 == s2
-                    V[s2, s1] += 0.5 * sys.freq[m] * qs[m]^2
+                    V[s1, s1] += 0.5 * sys.freq[m, s1] * qs[m]^2
                 end
                 V[s2, s1] += sys.lin[m, s2, s1] * qs[m]
             end
