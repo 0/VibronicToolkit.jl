@@ -12,6 +12,8 @@ test_lin = zeros(test_M, test_S, test_S)
 test_lin_diag = zeros(test_M, test_S, test_S)
 test_quad = zeros(test_M, test_M, test_S, test_S)
 test_quad_diag = zeros(test_M, test_M, test_S, test_S)
+test_cub_diag = zeros(test_M, test_M, test_M, test_S, test_S)
+test_quart_diag = zeros(test_M, test_M, test_M, test_M, test_S, test_S)
 for s1 in 1:test_S
     for m1 in 1:test_M
         test_freq[m1, s1] = s1+m1
@@ -22,6 +24,12 @@ for s1 in 1:test_S
         test_lin_diag[m1, s1, s1] = 0.001*(s1+s1+m1)
         for m2 in 1:test_M
             test_quad_diag[m2, m1, s1, s1] = 0.0005*(s1+s1+m1+m2)
+            for m3 in 1:test_M
+                test_cub_diag[m3, m2, m1, s1, s1] = 0.0001*(s1+s1+m1+m2+m3)
+                for m4 in 1:test_M
+                    test_quart_diag[m4, m3, m2, m1, s1, s1] = 0.0001*(s1+s1+m1+m2+m3+m4)
+                end
+            end
         end
     end
     for s2 in 1:test_S
@@ -34,10 +42,10 @@ for s1 in 1:test_S
         end
     end
 end
-test_params = test_freq, [test_energy, test_lin, test_quad]
-test_params_diag = test_freq, [test_energy_diag, test_lin_diag, test_quad_diag]
-test_params_flat = test_freq_flat, [test_energy, test_lin, test_quad]
-test_params_flat_diag = test_freq_flat, [test_energy_diag, test_lin_diag, test_quad_diag]
+test_params = test_freq, [test_energy, test_lin, test_quad, test_cub_diag, test_quart_diag]
+test_params_diag = test_freq, [test_energy_diag, test_lin_diag, test_quad_diag, test_cub_diag, test_quart_diag]
+test_params_flat = test_freq_flat, [test_energy, test_lin, test_quad, test_cub_diag, test_quart_diag]
+test_params_flat_diag = test_freq_flat, [test_energy_diag, test_lin_diag, test_quad_diag, test_cub_diag, test_quart_diag]
 test_params_trivial = ones(test_M, test_S), [ones(test_S, test_S)]
 
 test_S_sampling = 5

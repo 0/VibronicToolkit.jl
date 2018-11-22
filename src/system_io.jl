@@ -4,7 +4,8 @@ function Base.read(io::IO, ::Type{System})
     data = JSON.parse(io)
 
     known_keys = ["number of surfaces", "number of modes", "energies",
-                  "frequencies", "linear couplings", "quadratic couplings"]
+                  "frequencies", "linear couplings", "quadratic couplings",
+                  "cubic couplings", "quartic couplings"]
     unrecognized_keys = setdiff(keys(data), known_keys)
     isempty(unrecognized_keys) || @warn "Unrecognized keys: $(unrecognized_keys)."
 
@@ -93,6 +94,63 @@ function Base.read(io::IO, ::Type{System})
         coef_d[2] = quad
     end
 
+    if haskey(data, "cubic couplings")
+        cub = zeros(M, M, M, S, S)
+        length(data["cubic couplings"]) == size(cub, 1) || error("Bad cub size")
+        for (idx1, data1) in enumerate(data["cubic couplings"])
+            length(data1) == size(cub, 2) || error("Bad cub size")
+            for (idx2, data2) in enumerate(data1)
+                length(data2) == size(cub, 3) || error("Bad cub size")
+                for (idx3, data3) in enumerate(data2)
+                    length(data3) == size(cub, 4) || error("Bad cub size")
+                    for (idx4, data4) in enumerate(data3)
+                        if length(data4) == 1
+                            cub[idx1, idx2, idx3, idx4, idx4] = data4[1]
+                        elseif length(data4) == size(cub, 4)
+                            for (idx5, data5) in enumerate(data4)
+                                cub[idx1, idx2, idx3, idx4, idx5] = data5
+                            end
+                        else
+                            error("Bad cub size")
+                        end
+                    end
+                end
+            end
+        end
+        all(isapprox.(cub, permutedims(cub, [1, 2, 3, 5, 4]); rtol=1e-12)) || error("Asymmetric cub")
+        coef_d[3] = cub
+    end
+
+    if haskey(data, "quartic couplings")
+        quart = zeros(M, M, M, M, S, S)
+        length(data["quartic couplings"]) == size(quart, 1) || error("Bad quart size")
+        for (idx1, data1) in enumerate(data["quartic couplings"])
+            length(data1) == size(quart, 2) || error("Bad quart size")
+            for (idx2, data2) in enumerate(data1)
+                length(data2) == size(quart, 3) || error("Bad quart size")
+                for (idx3, data3) in enumerate(data2)
+                    length(data3) == size(quart, 4) || error("Bad quart size")
+                    for (idx4, data4) in enumerate(data3)
+                        length(data4) == size(quart, 5) || error("Bad quart size")
+                        for (idx5, data5) in enumerate(data4)
+                            if length(data5) == 1
+                                quart[idx1, idx2, idx3, idx4, idx5, idx5] = data5[1]
+                            elseif length(data5) == size(quart, 5)
+                                for (idx6, data6) in enumerate(data5)
+                                    quart[idx1, idx2, idx3, idx4, idx5, idx6] = data6
+                                end
+                            else
+                                error("Bad quart size")
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        all(isapprox.(quart, permutedims(quart, [1, 2, 3, 4, 6, 5]); rtol=1e-12)) || error("Asymmetric quart")
+        coef_d[4] = quart
+    end
+
     freq, HamiltonianCoefficients{S,M}(coef_d)
 end
 
@@ -120,6 +178,12 @@ function JSON.lower(sys::DenseSystem{S,M}) where {S,M}
     if haskey(sys.coef, 2)
         result["quadratic couplings"] = 2 * permutedims(sys.coef[2], [4, 3, 2, 1])
     end
+    if haskey(sys.coef, 3)
+        result["cubic couplings"] = permutedims(sys.coef[3], [5, 4, 3, 2, 1])
+    end
+    if haskey(sys.coef, 4)
+        result["quartic couplings"] = permutedims(sys.coef[4], [6, 5, 4, 3, 2, 1])
+    end
 
     result
 end
@@ -141,6 +205,12 @@ function JSON.lower(sys::DiagonalSystem{S,M}) where {S,M}
     end
     if haskey(sys.coef, 2)
         result["quadratic couplings"] = 2 * permutedims(diag(sys.coef[2], 3, 4), [3, 2, 1])
+    end
+    if haskey(sys.coef, 3)
+        result["cubic couplings"] = permutedims(diag(sys.coef[3], 4, 5), [4, 3, 2, 1])
+    end
+    if haskey(sys.coef, 4)
+        result["quartic couplings"] = permutedims(diag(sys.coef[4], 5, 6), [5, 4, 3, 2, 1])
     end
 
     result

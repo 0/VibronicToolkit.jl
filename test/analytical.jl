@@ -1,6 +1,6 @@
 let sys = DiagonalSystem(test_params_diag...),
     beta = 12.34,
-    analytical = Analytical(sys, beta)
+    analytical = Analytical(simplify(sys; ord=2), beta)
 
     @test isapprox(analytical.Z, 6.92896484e-9)
     @test isapprox(analytical.E, 1.52249605e0)
@@ -10,7 +10,7 @@ end
 let sys = DiagonalSystem(test_params_diag...),
     trial = UniformTrialWavefunction(sys),
     beta = 12.34,
-    analytical = PigsAnalytical(sys, trial, beta)
+    analytical = PigsAnalytical(simplify(sys; ord=2), trial, beta)
 
     @test isapprox(analytical.Z, 8.70719401e-8)
     @test isapprox(analytical.E, 1.52249605e0)
@@ -21,10 +21,18 @@ end
 let sys = DiagonalSystem(test_params_diag...),
     trial = UniformTrialWavefunction(sys),
     beta = 1e-5
-    analytical = PigsAnalytical(sys, trial, beta)
+    analytical = PigsAnalytical(simplify(sys; ord=2), trial, beta)
 
     @test isapprox(analytical.Z, 577814.838)
     @test isapprox(analytical.E, 99999.0360)
     @test isapprox(analytical.SvN, 7.87900924e-2)
     @test isapprox(analytical.S2, 3.01336884e-2)
+end
+
+let sys = DiagonalSystem(test_params_diag...),
+    trial = UniformTrialWavefunction(sys),
+    beta = 12.34
+
+    @test_throws DomainError Analytical(sys, beta)
+    @test_throws DomainError PigsAnalytical(sys, trial, beta)
 end

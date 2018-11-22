@@ -2,7 +2,7 @@ using VibronicToolkit: HamiltonianCoefficients, mode_indices
 
 let cub = zeros(test_M, test_M, test_M, test_S, test_S),
     quart = ones(test_M, test_M, test_M, test_M, test_S, test_S),
-    coef = HamiltonianCoefficients(test_params[2]..., cub, quart)
+    coef = HamiltonianCoefficients(test_params[2][1:3]..., cub, quart)
 
     @test keys(coef) == [0, 1, 2, 4]
     @test haskey(coef, 0)
