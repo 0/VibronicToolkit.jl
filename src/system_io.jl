@@ -160,7 +160,7 @@ Base.read(io::IO, ::Type{DiagonalSystem}) = DiagonalSystem(read(io, System)...)
 
 Base.write(io::IO, sys::System) = JSON.print(io, sys)
 
-function JSON.lower(sys::DenseSystem{S,M}) where {S,M}
+function JSON.lower(sys::System{S,M}) where {S,M}
     all(sys.freq .== sys.freq[:, 1]) || throw(DomainError(sys.freq, "All surfaces must have the same frequencies."))
 
     result = Dict()
@@ -170,50 +170,38 @@ function JSON.lower(sys::DenseSystem{S,M}) where {S,M}
 
     result["frequencies"] = sys.freq[:, 1]
     if haskey(sys.coef, 0)
-        result["energies"] = permutedims(sys.coef[0])
+        result["energies"] = prepare_tensor(sys.coef[0])
     end
     if haskey(sys.coef, 1)
-        result["linear couplings"] = permutedims(sys.coef[1], [3, 2, 1])
+        result["linear couplings"] = prepare_tensor(sys.coef[1])
     end
     if haskey(sys.coef, 2)
-        result["quadratic couplings"] = 2 * permutedims(sys.coef[2], [4, 3, 2, 1])
+        result["quadratic couplings"] = 2 * prepare_tensor(sys.coef[2])
     end
     if haskey(sys.coef, 3)
-        result["cubic couplings"] = permutedims(sys.coef[3], [5, 4, 3, 2, 1])
+        result["cubic couplings"] = prepare_tensor(sys.coef[3])
     end
     if haskey(sys.coef, 4)
-        result["quartic couplings"] = permutedims(sys.coef[4], [6, 5, 4, 3, 2, 1])
+        result["quartic couplings"] = prepare_tensor(sys.coef[4])
     end
 
     result
 end
 
-function JSON.lower(sys::DiagonalSystem{S,M}) where {S,M}
-    all(sys.freq .== sys.freq[:, 1]) || throw(DomainError(sys.freq, "All surfaces must have the same frequencies."))
-
-    result = Dict()
-
-    result["number of surfaces"] = S
-    result["number of modes"] = M
-
-    result["frequencies"] = sys.freq[:, 1]
-    if haskey(sys.coef, 0)
-        result["energies"] = diag(sys.coef[0])
-    end
-    if haskey(sys.coef, 1)
-        result["linear couplings"] = permutedims(diag(sys.coef[1], 2, 3))
-    end
-    if haskey(sys.coef, 2)
-        result["quadratic couplings"] = 2 * permutedims(diag(sys.coef[2], 3, 4), [3, 2, 1])
-    end
-    if haskey(sys.coef, 3)
-        result["cubic couplings"] = permutedims(diag(sys.coef[3], 4, 5), [4, 3, 2, 1])
-    end
-    if haskey(sys.coef, 4)
-        result["quartic couplings"] = permutedims(diag(sys.coef[4], 5, 6), [5, 4, 3, 2, 1])
+function prepare_tensor(xs::Array{Float64,N}) where {N}
+    diag_tensor = true
+    for idx in mode_indices(xs)
+        if !isdiag(xs[idx, :, :])
+            diag_tensor = false
+            break
+        end
     end
 
-    result
+    if diag_tensor
+        permutedims(diag(xs, N-1, N), (N-1):-1:1)
+    else
+        permutedims(xs, N:-1:1)
+    end
 end
 
 function show_tensors(io::IO, sys::System{S,M}) where {S,M}
