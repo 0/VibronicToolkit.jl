@@ -223,7 +223,7 @@ function sampling_matrix_interaction(sys::System{S,M}, sp::AbstractSamplingParam
             end
             for m1 in 1:M
                 for m2 in 1:M
-                    preIM[s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
+                    preIM[s2, s1] += sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
                 end
             end
         end

@@ -134,7 +134,7 @@ function potential(sys::System{S,M}, qs::Vector{Float64}) where {S,M}
             end
             for m1 in 1:M
                 for m2 in 1:M
-                    V[s2, s1] += 0.5 * sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
+                    V[s2, s1] += sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
                 end
             end
         end

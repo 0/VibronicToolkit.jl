@@ -21,7 +21,7 @@ for s1 in 1:test_S
     for m1 in 1:test_M
         test_lin_diag[m1, s1, s1] = 0.001*(s1+s1+m1)
         for m2 in 1:test_M
-            test_quad_diag[m2, m1, s1, s1] = 0.001*(s1+s1+m1+m2)
+            test_quad_diag[m2, m1, s1, s1] = 0.0005*(s1+s1+m1+m2)
         end
     end
     for s2 in 1:test_S
@@ -29,7 +29,7 @@ for s1 in 1:test_S
         for m1 in 1:test_M
             test_lin[m1, s2, s1] = 0.001*(s1+s2+m1)
             for m2 in 1:test_M
-                test_quad[m2, m1, s2, s1] = 0.001*(s1+s2+m1+m2)
+                test_quad[m2, m1, s2, s1] = 0.0005*(s1+s2+m1+m2)
             end
         end
     end

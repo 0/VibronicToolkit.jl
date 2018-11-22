@@ -128,7 +128,7 @@ function operators(basis::Basis{S,M}, sys::System{S,M}) where {S,M}
 
             for m1 in 1:M
                 for m2 in 1:M
-                    Vs[:, :, s2, s1] .+= 0.5 * sys.quad[m2, m1, s2, s1] * mkop(basis, q, m2) * mkop(basis, q, m1)
+                    Vs[:, :, s2, s1] .+= sys.quad[m2, m1, s2, s1] * mkop(basis, q, m2) * mkop(basis, q, m1)
                 end
             end
         end

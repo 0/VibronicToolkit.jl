@@ -142,7 +142,7 @@ described by `freq`, `lin`, and `quad`.
 function normal_modes(freq::AbstractVector{Float64}, lin::AbstractVector{Float64}, quad::AbstractMatrix{Float64})
     freq_sqrt = sqrt.(freq)
     lin_p = lin .* freq_sqrt
-    A = diagm(0 => freq.^2) + quad .* (freq_sqrt * freq_sqrt')
+    A = diagm(0 => freq.^2) + 2 * quad .* (freq_sqrt * freq_sqrt')
     issymmetric(A) || @warn "Asymmetric A"
     F = eigen(Symmetric(A))
     any(F.values .< 0) && error("Imaginary normal mode frequencies")

@@ -74,10 +74,10 @@ function Base.read(io::IO, ::Type{System})
                 length(data2) == size(quad, 3) || error("Bad quad size")
                 for (idx3, data3) in enumerate(data2)
                     if length(data3) == 1
-                        quad[idx1, idx2, idx3, idx3] = data3[1]
+                        quad[idx1, idx2, idx3, idx3] = 0.5 * data3[1]
                     elseif length(data3) == size(quad, 4)
                         for (idx4, data4) in enumerate(data3)
-                            quad[idx1, idx2, idx3, idx4] = data4
+                            quad[idx1, idx2, idx3, idx4] = 0.5 * data4
                         end
                     else
                         error("Bad quad size")
@@ -108,7 +108,7 @@ function JSON.lower(sys::DenseSystem{S,M}) where {S,M}
     result["energies"] = permutedims(sys.energy)
     result["frequencies"] = sys.freq[:, 1]
     result["linear couplings"] = permutedims(sys.lin, [3, 2, 1])
-    result["quadratic couplings"] = permutedims(sys.quad, [4, 3, 2, 1])
+    result["quadratic couplings"] = 2 * permutedims(sys.quad, [4, 3, 2, 1])
 
     result
 end
@@ -124,7 +124,7 @@ function JSON.lower(sys::DiagonalSystem{S,M}) where {S,M}
     result["energies"] = diag(sys.energy)
     result["frequencies"] = sys.freq[:, 1]
     result["linear couplings"] = permutedims(diag(sys.lin, 2, 3))
-    result["quadratic couplings"] = permutedims(diag(sys.quad, 3, 4), [3, 2, 1])
+    result["quadratic couplings"] = 2 * permutedims(diag(sys.quad, 3, 4), [3, 2, 1])
 
     result
 end
