@@ -34,20 +34,16 @@ for s1 in 1:test_S
         end
     end
 end
-test_params = (test_energy, test_freq, test_lin, test_quad)
-test_params_diag = (test_energy_diag, test_freq, test_lin_diag, test_quad_diag)
-test_params_flat = (test_energy, test_freq_flat, test_lin, test_quad)
-test_params_flat_diag = (test_energy_diag, test_freq_flat, test_lin_diag, test_quad_diag)
-test_params_trivial = (ones(test_S, test_S),
-                       ones(test_M, test_S),
-                       zeros(test_M, test_S, test_S),
-                       zeros(test_M, test_M, test_S, test_S))
+test_params = test_freq, [test_energy, test_lin, test_quad]
+test_params_diag = test_freq, [test_energy_diag, test_lin_diag, test_quad_diag]
+test_params_flat = test_freq_flat, [test_energy, test_lin, test_quad]
+test_params_flat_diag = test_freq_flat, [test_energy_diag, test_lin_diag, test_quad_diag]
+test_params_trivial = ones(test_M, test_S), [ones(test_S, test_S)]
 
 test_S_sampling = 5
 test_energy_sampling = zeros(test_S_sampling, test_S_sampling)
 test_freq_sampling = zeros(test_M, test_S_sampling)
 test_lin_sampling = zeros(test_M, test_S_sampling, test_S_sampling)
-test_quad_sampling = zeros(test_M, test_M, test_S_sampling, test_S_sampling)
 for s1 in 1:test_S_sampling
     test_energy_sampling[s1, s1] = 0.01*(s1+s1) - 1.0
     for m1 in 1:test_M
@@ -55,12 +51,11 @@ for s1 in 1:test_S_sampling
         test_lin_sampling[m1, s1, s1] = 0.001*(s1+s1+m1)
     end
 end
-test_params_sampling = (test_energy_sampling, test_freq_sampling, test_lin_sampling, test_quad_sampling)
+test_params_sampling = test_freq_sampling, [test_energy_sampling, test_lin_sampling]
 
 test_energy_sym = zeros(test_S, test_S)
 test_lin_sym = zeros(test_M, test_S, test_S)
 test_lin_sym3 = zeros(test_M, test_S, test_S)
-test_quad_sym = zeros(test_M, test_M, test_S, test_S)
 for m1 in 1:test_M
     for s1 in 1:test_S
         s2 = m1 % 2 == 0 ? s1 : test_S+1-s1
@@ -68,8 +63,8 @@ for m1 in 1:test_M
         test_lin_sym3[m1, s2, s1] = 1.0
     end
 end
-test_params_sym = (test_energy_sym, test_freq_flat, test_lin_sym, test_quad_sym)
-test_params_sym3 = (test_energy_sym, test_freq_flat, test_lin_sym3, test_quad_sym)
+test_params_sym = test_freq_flat, [test_energy_sym, test_lin_sym]
+test_params_sym3 = test_freq_flat, [test_energy_sym, test_lin_sym3]
 
 @testset "VibronicToolkit" begin
     @testset "utilities.jl" begin include("utilities.jl") end

@@ -176,8 +176,8 @@ end
 Generate a `DiagonalSystem` from `decomp`.
 """
 function DiagonalSystem(decomp::IterativeDecomposition{S,S_,M}) where {S,S_,M}
-    energy = zeros(S, S)
     freq = zeros(M, S)
+    energy = zeros(S, S)
     lin = zeros(M, S, S)
     quad = zeros(M, M, S, S)
     for s in 1:S
@@ -190,5 +190,5 @@ function DiagonalSystem(decomp::IterativeDecomposition{S,S_,M}) where {S,S_,M}
             end
         end
     end
-    DiagonalSystem(energy, freq, lin, quad)
+    DiagonalSystem(freq, [energy, lin, quad])
 end

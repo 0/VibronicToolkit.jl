@@ -26,24 +26,41 @@ otherwise.
 """
 function isdiag end
 
+include("system_coef.jl")
 include("system_dense.jl")
 include("system_diagonal.jl")
 include("system_io.jl")
 
 function Base.:(==)(sys1::System{S,M}, sys2::System{S,M}) where {S,M}
-    sys1.energy == sys2.energy || return false
     sys1.freq == sys2.freq || return false
-    sys1.lin == sys2.lin || return false
-    sys1.quad == sys2.quad || return false
+    keys(sys1.coef) == keys(sys2.coef) || return false
+    for ((ord1, val1), (ord2, val2)) in zip(sys1.coef, sys2.coef)
+        ord1 == ord2 || throw(ErrorException("Order mismatch."))
+        val1 == val2 || return false
+    end
     true
 end
 
 function Base.isapprox(sys1::System{S,M}, sys2::System{S,M}; kwargs...) where {S,M}
-    isapprox(sys1.energy, sys2.energy; kwargs...) || return false
     isapprox(sys1.freq, sys2.freq; kwargs...) || return false
-    isapprox(sys1.lin, sys2.lin; kwargs...) || return false
-    isapprox(sys1.quad, sys2.quad; kwargs...) || return false
+    keys(sys1.coef) == keys(sys2.coef) || return false
+    for ((ord1, val1), (ord2, val2)) in zip(sys1.coef, sys2.coef)
+        ord1 == ord2 || throw(ErrorException("Order mismatch."))
+        isapprox(val1, val2; kwargs...) || return false
+    end
     true
+end
+
+function Base.getproperty(sys::System, sym::Symbol)
+    if sym === :energy
+        return sys.coef[0]
+    elseif sym === :lin
+        return sys.coef[1]
+    elseif sym === :quad
+        return sys.coef[2]
+    else
+        return getfield(sys, sym)
+    end
 end
 
 """
@@ -51,7 +68,7 @@ end
 
 Create a dense system from the diagonal system `sys`.
 """
-DenseSystem(sys::DiagonalSystem) = DenseSystem(sys.energy, sys.freq, sys.lin, sys.quad)
+DenseSystem(sys::DiagonalSystem) = DenseSystem(sys.freq, sys.coef)
 
 """
     DiagonalSystem(sys::DenseSystem)
@@ -67,54 +84,20 @@ function DiagonalSystem(sys::DenseSystem)
 end
 
 """
-    isdiag(energy::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
+    simplify(sys::System; ord::Int=1)
 
-Determine whether the component tensors of a system are diagonal in surfaces.
+Generate a simplified version of `sys` with no coefficients beyond `ord`.
 """
-function isdiag(energy::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
-    isdiag(energy) || return false
-    for m in 1:size(lin, 1)
-        isdiag(lin[m, :, :]) || return false
-    end
-    for m1 in 1:size(quad, 2)
-        for m2 in 1:size(quad, 1)
-            isdiag(quad[m2, m1, :, :]) || return false
-        end
-    end
-    true
+function simplify(sys::T; ord::Int=1) where {T<:System{S,M}} where {S,M}
+    bare(T)(sys.freq, HamiltonianCoefficients{S,M}(Dict(x for x in sys.coef if x.first <= ord)))
 end
 
 """
-    check_shape(S::Int, M::Int, energy::AbstractMatrix{Float64}, freq::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
+    issimple(sys::System; ord::Int=1)
 
-Throw the appropriate exception if the component tensors of a system have the
-wrong shape.
+Determine whether `sys` is simple (has no coefficients beyond `ord`).
 """
-function check_shape(S::Int, M::Int, energy::AbstractMatrix{Float64}, freq::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
-    S >= 1 || throw(DomainError(S, "At least 1 surface."))
-    M >= 1 || throw(DomainError(M, "At least 1 mode."))
-    size(energy) == (S, S) || throw(DomainError(size(energy), "Expected energy dimensions: $(S), $(S)."))
-    size(freq) == (M, S) || throw(DomainError(size(freq), "Expected freq dimensions: $(M), $(S)."))
-    size(lin) == (M, S, S) || throw(DomainError(size(lin), "Expected lin dimensions: $(M), $(S), $(S)."))
-    size(quad) == (M, M, S, S) || throw(DomainError(size(quad), "Expected quad dimensions: $(M), $(M), $(S), $(S)."))
-    nothing
-end
-
-"""
-    simplify(sys::System)
-
-Generate a simplified version of `sys` with no quadratic coupling.
-"""
-function simplify(sys::T) where {T<:System}
-    T(sys.energy, sys.freq, sys.lin, zero(sys.quad))
-end
-
-"""
-    issimple(sys::System)
-
-Determine whether `sys` is simple (has no quadratic coupling).
-"""
-issimple(sys::System) = iszero(sys.quad)
+issimple(sys::System; ord::Int=1) = maximum(keys(sys.coef)) <= ord
 
 """
     potential(sys::System, qs::Vector{Float64})
@@ -123,21 +106,17 @@ Compute the potential matrix (full Hamiltonian without kinetic energy) for
 `sys` at `qs`.
 """
 function potential(sys::System{S,M}, qs::Vector{Float64}) where {S,M}
-    V = copy(sys.energy)
-    for s1 in 1:S
-        for s2 in 1:S
+    V = zeros(Float64, S, S)
+    for s in 1:S
             for m in 1:M
-                if s1 == s2
-                    V[s1, s1] += 0.5 * sys.freq[m, s1] * qs[m]^2
-                end
-                V[s2, s1] += sys.lin[m, s2, s1] * qs[m]
+                    V[s, s] += 0.5 * sys.freq[m, s] * qs[m]^2
             end
-            for m1 in 1:M
-                for m2 in 1:M
-                    V[s2, s1] += sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
-                end
-            end
+    end
+    coefficients(sys.coef) do ord, s1, s2, idx, val
+        for m in idx
+            val *= qs[m]
         end
+        V[s2, s1] += val
     end
     Symmetric(V)
 end

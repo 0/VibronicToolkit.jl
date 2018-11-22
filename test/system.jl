@@ -1,3 +1,4 @@
+include("system_coef.jl")
 include("system_dense.jl")
 include("system_diagonal.jl")
 include("system_io.jl")
@@ -10,7 +11,7 @@ let sys1 = DenseSystem(test_params...),
     sys2 = DenseSystem(test_params...),
     sys3 = DenseSystem(test_params_diag...),
     sys4 = DiagonalSystem(test_params_diag...),
-    sys5 = DenseSystem(ones(1,1), ones(1,1), ones(1,1,1), ones(1,1,1,1))
+    sys5 = DenseSystem(ones(1,1), [ones(1,1), ones(1,1,1), ones(1,1,1,1)])
 
     @test sys1 == sys1
     @test sys1 == sys2

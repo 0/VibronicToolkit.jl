@@ -18,8 +18,20 @@ function Base.read(io::IO, ::Type{System})
         haskey(data, key) && error("System file contains outdated key '$(key)'.")
     end
 
-    energy = zeros(S, S)
+    freq = zeros(M, S)
+    # We repeat the frequency values over the surfaces.
+    if haskey(data, "frequencies")
+        length(data["frequencies"]) == size(freq, 1) || error("Bad freq size")
+        for (idx1, data1) in enumerate(data["frequencies"])
+            freq[idx1, :] .= data1
+        end
+    end
+    all(freq .> 0) || error("Nonpositive freq")
+
+    coef_d = Dict{Int,Array{Float64}}()
+
     if haskey(data, "energies")
+        energy = zeros(S, S)
         length(data["energies"]) == size(energy, 1) || error("Bad energy size")
         for (idx1, data1) in enumerate(data["energies"])
             if length(data1) == 1
@@ -32,21 +44,12 @@ function Base.read(io::IO, ::Type{System})
                 error("Bad energy size")
             end
         end
+        all(isapprox.(energy, permutedims(energy); rtol=1e-12)) || error("Asymmetric energy")
+        coef_d[0] = energy
     end
-    all(isapprox.(energy, permutedims(energy); rtol=1e-12)) || error("Asymmetric energy")
 
-    freq = zeros(M, S)
-    # We repeat the frequency values over the surfaces.
-    if haskey(data, "frequencies")
-        length(data["frequencies"]) == size(freq, 1) || error("Bad freq size")
-        for (idx1, data1) in enumerate(data["frequencies"])
-            freq[idx1, :] .= data1
-        end
-    end
-    all(freq .> 0) || error("Nonpositive freq")
-
-    lin = zeros(M, S, S)
     if haskey(data, "linear couplings")
+        lin = zeros(M, S, S)
         length(data["linear couplings"]) == size(lin, 1) || error("Bad lin size")
         for (idx1, data1) in enumerate(data["linear couplings"])
             length(data1) == size(lin, 2) || error("Bad lin size")
@@ -62,11 +65,12 @@ function Base.read(io::IO, ::Type{System})
                 end
             end
         end
+        all(isapprox.(lin, permutedims(lin, [1, 3, 2]); rtol=1e-12)) || error("Asymmetric lin")
+        coef_d[1] = lin
     end
-    all(isapprox.(lin, permutedims(lin, [1, 3, 2]); rtol=1e-12)) || error("Asymmetric lin")
 
-    quad = zeros(M, M, S, S)
     if haskey(data, "quadratic couplings")
+        quad = zeros(M, M, S, S)
         length(data["quadratic couplings"]) == size(quad, 1) || error("Bad quad size")
         for (idx1, data1) in enumerate(data["quadratic couplings"])
             length(data1) == size(quad, 2) || error("Bad quad size")
@@ -85,10 +89,11 @@ function Base.read(io::IO, ::Type{System})
                 end
             end
         end
+        all(isapprox.(quad, permutedims(quad, [1, 2, 4, 3]); rtol=1e-12)) || error("Asymmetric quad")
+        coef_d[2] = quad
     end
-    all(isapprox.(quad, permutedims(quad, [1, 2, 4, 3]); rtol=1e-12)) || error("Asymmetric quad")
 
-    energy, freq, lin, quad
+    freq, HamiltonianCoefficients{S,M}(coef_d)
 end
 
 Base.read(io::IO, ::Type{DenseSystem}) = DenseSystem(read(io, System)...)
@@ -105,10 +110,16 @@ function JSON.lower(sys::DenseSystem{S,M}) where {S,M}
     result["number of surfaces"] = S
     result["number of modes"] = M
 
-    result["energies"] = permutedims(sys.energy)
     result["frequencies"] = sys.freq[:, 1]
-    result["linear couplings"] = permutedims(sys.lin, [3, 2, 1])
-    result["quadratic couplings"] = 2 * permutedims(sys.quad, [4, 3, 2, 1])
+    if haskey(sys.coef, 0)
+        result["energies"] = permutedims(sys.coef[0])
+    end
+    if haskey(sys.coef, 1)
+        result["linear couplings"] = permutedims(sys.coef[1], [3, 2, 1])
+    end
+    if haskey(sys.coef, 2)
+        result["quadratic couplings"] = 2 * permutedims(sys.coef[2], [4, 3, 2, 1])
+    end
 
     result
 end
@@ -121,40 +132,44 @@ function JSON.lower(sys::DiagonalSystem{S,M}) where {S,M}
     result["number of surfaces"] = S
     result["number of modes"] = M
 
-    result["energies"] = diag(sys.energy)
     result["frequencies"] = sys.freq[:, 1]
-    result["linear couplings"] = permutedims(diag(sys.lin, 2, 3))
-    result["quadratic couplings"] = 2 * permutedims(diag(sys.quad, 3, 4), [3, 2, 1])
+    if haskey(sys.coef, 0)
+        result["energies"] = diag(sys.coef[0])
+    end
+    if haskey(sys.coef, 1)
+        result["linear couplings"] = permutedims(diag(sys.coef[1], 2, 3))
+    end
+    if haskey(sys.coef, 2)
+        result["quadratic couplings"] = 2 * permutedims(diag(sys.coef[2], 3, 4), [3, 2, 1])
+    end
 
     result
 end
 
 function show_tensors(io::IO, sys::System{S,M}) where {S,M}
-    if !iszero(sys.energy)
-        println(io, "energies:")
-        show_matrix(io, sys.energy)
-    end
     println(io, "frequencies:")
     for m in 1:M
         println(io, " mode $(m)")
         show_vector(io, sys.freq[m, :])
     end
-    if !iszero(sys.lin)
-        println(io, "linear couplings:")
-        for m in 1:M
-            iszero(sys.lin[m, :, :]) && continue
-            println(io, " mode $(m)")
-            show_matrix(io, sys.lin[m, :, :])
+    for (ord, val) in sys.coef
+        if ord == 0
+            println(io, "energies:")
+        elseif ord == 1
+            println(io, "linear couplings:")
+        elseif ord == 2
+            println(io, "quadratic couplings:")
+        else
+            println(io, "order $(ord) couplings:")
         end
-    end
-    if !iszero(sys.quad)
-        println(io, "quadratic couplings:")
-        for m1 in 1:M
-            for m2 in 1:M
-                iszero(sys.quad[m2, m1, :, :]) && continue
-                println(io, " modes $(m1), $(m2)")
-                show_matrix(io, sys.quad[m2, m1, :, :])
+        for idx in mode_indices(val)
+            iszero(val[idx, :, :]) && continue
+            if length(idx) == 1
+                println(io, " mode $(idx[1])")
+            elseif length(idx) >= 2
+                println(io, " modes $(join(reverse(Tuple(idx)), ", "))")
             end
+            show_matrix(io, val[idx, :, :])
         end
     end
     nothing

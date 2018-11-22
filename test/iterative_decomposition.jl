@@ -14,7 +14,7 @@ let sys = DenseSystem(test_params_flat...),
     expected_freq = reshape([1.0, 2.0], test_M, 1)
     expected_lin = reshape([0.0149574448, 0.0179572297], test_M, 1, 1)
     expected_quad = reshape([8.97861485e-3 1.04785073e-2; 1.04785073e-2 1.19783998e-2], test_M, test_M, 1, 1)
-    sys_expected = DiagonalSystem(expected_energy, expected_freq, expected_lin, expected_quad)
+    sys_expected = DiagonalSystem(expected_freq, [expected_energy, expected_lin, expected_quad])
     @test isapprox(sys_decomp, sys_expected)
 end
 

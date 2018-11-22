@@ -5,40 +5,34 @@ System of `M` coupled harmonic oscillators (modes) across `S` surfaces, with
 the possibility for coupling between surfaces.
 """
 struct DenseSystem{S,M} <: System{S,M}
-    "Energy offsets (S, S)."
-    energy::Matrix{Float64}
     "Frequencies (M, S)."
     freq::Matrix{Float64}
-    "Linear prefactors (M, S, S)."
-    lin::Array{Float64,3}
-    "Quadratic prefactors (M, M, S, S)."
-    quad::Array{Float64,4}
+    "Hamiltonian coefficients."
+    coef::HamiltonianCoefficients{S,M}
 
-    function DenseSystem{S,M}(energy::AbstractMatrix{Float64}, freq::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4}) where {S,M}
-        check_shape(S, M, energy, freq, lin, quad)
-        new{S,M}(energy, freq, lin, quad)
-    end
-
-    function DenseSystem(energy::AbstractMatrix{Float64}, freq::AbstractMatrix{Float64}, lin::AbstractArray{Float64,3}, quad::AbstractArray{Float64,4})
-        M, S = size(freq)
-        DenseSystem{S,M}(energy, freq, lin, quad)
+    function DenseSystem(freq::AbstractMatrix{Float64}, coef::HamiltonianCoefficients{S,M}) where {S,M}
+        size(freq) == (M, S) || throw(DomainError(size(freq), "Unexpected freq dimensions."))
+        new{S,M}(freq, coef)
     end
 end
+
+function DenseSystem(freq::AbstractMatrix{Float64}, coef::AbstractVector)
+    (M, S) = size(freq)
+    DenseSystem(freq, HamiltonianCoefficients{S,M}(coef...))
+end
+
+bare(::Type{T}) where {T<:DenseSystem} = DenseSystem
 
 function diag(sys::DenseSystem{S,M}) where {S,M}
-    energy = Diagonal(sys.energy)
-    freq = sys.freq
-    lin = zero(sys.lin)
-    for m in 1:M
-        lin[m, :, :] .= Diagonal(sys.lin[m, :, :])
-    end
-    quad = zero(sys.quad)
-    for m1 in 1:M
-        for m2 in 1:M
-            quad[m2, m1, :, :] .= Diagonal(sys.quad[m2, m1, :, :])
+    coef_d = Dict{Int,Array{Float64}}()
+    for (ord, val) in sys.coef
+        val_diag = zero(val)
+        for idx in mode_indices(val)
+            val_diag[idx, :, :] .= Diagonal(val[idx, :, :])
         end
+        coef_d[ord] = val_diag
     end
-    DiagonalSystem(energy, freq, lin, quad)
+    DiagonalSystem(sys.freq, HamiltonianCoefficients{S,M}(coef_d))
 end
 
-isdiag(sys::DenseSystem) = isdiag(sys.energy, sys.lin, sys.quad)
+isdiag(sys::DenseSystem) = isdiag(sys.coef)

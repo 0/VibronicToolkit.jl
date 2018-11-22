@@ -106,31 +106,21 @@ function operators(basis::Basis{S,M}, sys::System{S,M}) where {S,M}
     h0s = zeros(basis.dim1, basis.dim1, S, S)
     Vs = zeros(basis.dim1, basis.dim1, S, S)
 
-    for s1 in 1:S
-        for s2 in 1:S
-            if s1 == s2
-                h0s[:, :, s1, s1] .+= sys.energy[s1, s1] * mkid(basis)
+    for s in 1:S
+        for m in 1:M
+            h0s[:, :, s, s] .+= sys.freq[m, s] * (mkop(basis, n, m) + 0.5 * mkop(basis, id, m))
+        end
+    end
 
-                for m in 1:M
-                    h0s[:, :, s1, s1] .+= sys.freq[m, s1] * (mkop(basis, n, m) + 0.5 * mkop(basis, id, m))
-                end
-            else
-                Vs[:, :, s2, s1] .+= sys.energy[s2, s1] * mkid(basis)
-            end
-
-            for m in 1:M
-                if s1 == s2
-                    h0s[:, :, s1, s1] .+= sys.lin[m, s1, s1] * mkop(basis, q, m)
-                else
-                    Vs[:, :, s2, s1] .+= sys.lin[m, s2, s1] * mkop(basis, q, m)
-                end
-            end
-
-            for m1 in 1:M
-                for m2 in 1:M
-                    Vs[:, :, s2, s1] .+= sys.quad[m2, m1, s2, s1] * mkop(basis, q, m2) * mkop(basis, q, m1)
-                end
-            end
+    coefficients(sys.coef) do ord, s1, s2, idx, val
+        k = val * mkid(basis)
+        for m in idx
+            k *= mkop(basis, q, m)
+        end
+        if ord <= 1 && s1 == s2
+            h0s[:, :, s1, s1] .+= k
+        else
+            Vs[:, :, s2, s1] .+= k
         end
     end
 

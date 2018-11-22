@@ -23,6 +23,8 @@ end
 Calculate the solution for `sys` at `beta`.
 """
 function Analytical(sys::DiagonalSystem{S,M}, beta::Float64) where {S,M}
+    issimple(sys; ord=2) || throw(DomainError(:sys, "System must be simple to order 2."))
+
     Zs = exp.(-beta * diag(sys.energy))
     E1s = zero(Zs)
     E2s = zero(Zs)
@@ -87,6 +89,8 @@ end
 Calculate the solution for `sys` with `trial` propagated by `beta`.
 """
 function PigsAnalytical(sys::DiagonalSystem{S,M}, trial::UniformTrialWavefunction{S,M}, beta::Float64) where {S,M}
+    issimple(sys; ord=2) || throw(DomainError(:sys, "System must be simple to order 2."))
+
     Zs = exp.(-beta * diag(sys.energy))
     Es = zero(Zs)
 

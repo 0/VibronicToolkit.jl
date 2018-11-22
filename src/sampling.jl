@@ -212,21 +212,12 @@ end
 
 function sampling_matrix_interaction(sys::System{S,M}, sp::AbstractSamplingParameters{S,M,P}, qs::Vector{Float64}; prefactor::Float64=1.0) where {S,M,P}
     preIM = zeros(S, S)
-    for s1 in 1:S
-        # Only build the upper triangle.
-        for s2 in 1:s1
-            if s1 != s2
-                preIM[s2, s1] += sys.energy[s2, s1]
-                for m in 1:M
-                    preIM[s2, s1] += sys.lin[m, s2, s1] * qs[m]
-                end
-            end
-            for m1 in 1:M
-                for m2 in 1:M
-                    preIM[s2, s1] += sys.quad[m2, m1, s2, s1] * qs[m2] * qs[m1]
-                end
-            end
+    coefficients(sys.coef) do ord, s1, s2, idx, val
+        ord <= 1 && s1 == s2 && return
+        for m in idx
+            val *= qs[m]
         end
+        preIM[s2, s1] += val
     end
     Symmetric(preIM), exp(Symmetric(-prefactor * sp.tau * preIM))
 end
