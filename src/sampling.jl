@@ -16,6 +16,8 @@ struct SamplingParameters{S,M,P} <: AbstractSamplingParameters{S,M,P}
 
     "Surface weights."
     weights::Weights
+    "Mean vectors (M, S)."
+    means::Matrix{Vector{Float64}}
     "Precision (inverse covariance) matrices (M, S)."
     precs::Matrix{Matrix{Float64}}
     "Multivariate normal distributions (M, S)."
@@ -52,11 +54,12 @@ function SamplingParameters(sys::DiagonalSystem{S,M}, beta::Float64, P::Int) whe
     Ss = sinh.(sys.freq * tau)
     S_prods = Float64[prod(Ss[:, s]) for s in 1:S]
 
+    means = Matrix{Vector{Float64}}(undef, M, S)
     precs = Matrix{Matrix{Float64}}(undef, M, S)
     mvns = Matrix{MvNormal}(undef, M, S)
     for s in 1:S
         for m in 1:M
-            mean = sys.ds[m, s] * ones(P)
+            means[m, s] = sys.ds[m, s] * ones(P)
 
             # Precision matrix.
             prec = diagm(0 => 2 * Cs[m, s] * ones(P), -1 => -ones(P-1), 1 => -ones(P-1))
@@ -71,11 +74,11 @@ function SamplingParameters(sys::DiagonalSystem{S,M}, beta::Float64, P::Int) whe
             cov = (cov + cov') / 2
 
             precs[m, s] = prec
-            mvns[m, s] = MvNormal(mean, cov)
+            mvns[m, s] = MvNormal(means[m, s], cov)
         end
     end
 
-    SamplingParameters{S,M,P}(sys, tau, weights, precs, mvns, Cs, Ss, S_prods)
+    SamplingParameters{S,M,P}(sys, tau, weights, means, precs, mvns, Cs, Ss, S_prods)
 end
 
 function Base.show(io::IO, sp::SamplingParameters{S,M,P}) where {S,M,P}
@@ -100,6 +103,8 @@ struct PigsSamplingParameters{S,M,P} <: AbstractSamplingParameters{S,M,P}
 
     "Surface weights."
     weights::Weights
+    "Mean vectors (M, S)."
+    means::Matrix{Vector{Float64}}
     "Precision (inverse covariance) matrices (M, S)."
     precs::Matrix{Matrix{Float64}}
     "Multivariate normal distributions (M, S)."
@@ -138,11 +143,12 @@ function PigsSamplingParameters(sys::DiagonalSystem{S,M}, trial::UniformTrialWav
     Ss = sinh.(sys.freq * tau)
     S_prods = Float64[prod(Ss[:, s]) for s in 1:S]
 
+    means = Matrix{Vector{Float64}}(undef, M, S)
     precs = Matrix{Matrix{Float64}}(undef, M, S)
     mvns = Matrix{MvNormal}(undef, M, S)
     for s in 1:S
         for m in 1:M
-            mean = sys.ds[m, s] * ones(P+1)
+            means[m, s] = sys.ds[m, s] * ones(P+1)
 
             # Precision matrix.
             prec = diagm(0 => 2 * Cs[m, s] * ones(P+1), -1 => -ones(P), 1 => -ones(P))
@@ -157,11 +163,11 @@ function PigsSamplingParameters(sys::DiagonalSystem{S,M}, trial::UniformTrialWav
             cov = (cov + cov') / 2
 
             precs[m, s] = prec
-            mvns[m, s] = MvNormal(mean, cov)
+            mvns[m, s] = MvNormal(means[m, s], cov)
         end
     end
 
-    PigsSamplingParameters{S,M,P}(sys, trial, tau, weights, precs, mvns, Cs, Ss, S_prods)
+    PigsSamplingParameters{S,M,P}(sys, trial, tau, weights, means, precs, mvns, Cs, Ss, S_prods)
 end
 
 function Base.show(io::IO, sp::PigsSamplingParameters{S,M,P}) where {S,M,P}
