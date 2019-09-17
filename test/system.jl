@@ -1,4 +1,4 @@
-using VibronicToolkit: potential
+using VibronicToolkit: issimple, potential
 
 using LinearAlgebra: Diagonal
 
@@ -50,6 +50,16 @@ let sys1 = DenseSystem(test_params...),
     @test sys6 != sys4
     @test sys6 != sys5
     @test sys6 == sys6
+end
+
+let sys1 = DenseSystem(test_freq, []),
+    sys2 = DiagonalSystem(test_freq, [])
+
+    @test sys1 == sys2
+    @test issimple(sys1)
+    @test sys1 == simplify(sys1)
+    @test issimple(sys2)
+    @test sys2 == simplify(sys2)
 end
 
 let sys1 = DenseSystem(test_params...),

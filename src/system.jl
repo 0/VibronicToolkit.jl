@@ -89,7 +89,8 @@ end
 Generate a simplified version of `sys` with no coefficients beyond `ord`.
 """
 function simplify(sys::T; ord::Int=1) where {T<:System{S,M}} where {S,M}
-    bare(T)(sys.freq, HamiltonianCoefficients{S,M}(Dict(x for x in sys.coef if x.first <= ord)))
+    d = Dict{Int,Array{Float64}}(x for x in sys.coef if x.first <= ord)
+    bare(T)(sys.freq, HamiltonianCoefficients{S,M}(d))
 end
 
 """
@@ -97,7 +98,11 @@ end
 
 Determine whether `sys` is simple (has no coefficients beyond `ord`).
 """
-issimple(sys::System; ord::Int=1) = maximum(keys(sys.coef)) <= ord
+function issimple(sys::System; ord::Int=1)
+    ks = keys(sys.coef)
+    isempty(ks) && return true
+    maximum(ks) <= ord
+end
 
 """
     potential(sys::System, qs::Vector{Float64})
