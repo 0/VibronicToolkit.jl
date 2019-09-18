@@ -58,6 +58,10 @@ end
 Base.eltype(::Type{HamiltonianCoefficients}) = Array{Float64}
 Base.length(coef::HamiltonianCoefficients) = length(keys(coef))
 
+function Base.:*(x::Float64, coef::HamiltonianCoefficients{S,M}) where {S,M}
+    HamiltonianCoefficients{S,M}(Dict(ord => x * val for (ord, val) in coef.d))
+end
+
 """
     get_shape(d::Dict{Int,Array{Float64}})
 

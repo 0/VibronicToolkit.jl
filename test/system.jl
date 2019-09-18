@@ -52,6 +52,11 @@ let sys1 = DenseSystem(test_params...),
     @test sys6 == sys6
 end
 
+let sys = DenseSystem(ones(1,1), [ones(1,1), ones(1,1,1), ones(1,1,1,1)])
+
+    @test (3.2 * sys).quad == 3.2 * ones(1,1,1,1)
+end
+
 let sys1 = DenseSystem(test_freq, []),
     sys2 = DiagonalSystem(test_freq, [])
 

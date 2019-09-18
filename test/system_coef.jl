@@ -27,6 +27,8 @@ let cub = zeros(test_M, test_M, test_M, test_S, test_S),
     @test keys_collected == keys(coef)
 
     @test length(mode_indices(coef[6])) == test_M^6
+
+    @test (5.6 * coef)[4] == 5.6 * quart
 end
 
 let coef12 = HamiltonianCoefficients{1,2}(),

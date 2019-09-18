@@ -83,6 +83,8 @@ function DiagonalSystem(sys::DenseSystem)
     diag(sys)
 end
 
+Base.:*(x::Float64, sys::T) where {T<:System} = bare(T)(sys.freq, x * sys.coef)
+
 """
     simplify(sys::System; ord::Int=1)
 
