@@ -110,44 +110,44 @@ for (density_all, out_path) in zip(densities, out_paths)
 
             # Draw density.
             if c[:contour]
-                global cf = ax["contourf"](density, origin="lower", extent=extent, levels=levels, cmap="magma")
+                global cf = ax.contourf(density, origin="lower", extent=extent, levels=levels, cmap="magma")
                 if findfirst(x -> minimum(density) <= x, levels) < findlast(x -> x <= maximum(density), levels)
                     # Only show the contours if any appear in the current
                     # density landscape.
-                    ax["contour"](density, origin="lower", extent=extent, levels=levels, colors="0.5", linestyles="solid", linewidths=0.2)
+                    ax.contour(density, origin="lower", extent=extent, levels=levels, colors="0.5", linestyles="solid", linewidths=0.2)
                 end
             else
-                global cf = ax["imshow"](density, origin="lower", aspect="auto", extent=extent, vmin=vmin, vmax=vmax, cmap="magma")
+                global cf = ax.imshow(density, origin="lower", aspect="auto", extent=extent, vmin=vmin, vmax=vmax, cmap="magma")
             end
 
             if c[:sampling_conf] !== nothing
                 # Draw sampling distribution.
                 ds = sampling_sys.ds
                 ws = weights(sampling_sys, beta)
-                colors = map(plt["matplotlib"]["colors"]["hsv_to_rgb"], [(0.4, w, 0.8) for w in ws])
-                ax["scatter"](ds[1,:], ds[2,:], marker="+", c=colors)
+                colors = map(plt.matplotlib.colors.hsv_to_rgb, [(0.4, w, 0.8) for w in ws])
+                ax.scatter(ds[1,:], ds[2,:], marker="+", c=colors)
                 for s in 1:size(ds, 2)
                     sigma_1 = path_mean_std(sampling_sys, beta, P, s, 1)
                     sigma_2 = path_mean_std(sampling_sys, beta, P, s, 2)
-                    ellipse_f = plt["matplotlib"]["patches"]["Ellipse"]
+                    ellipse_f = plt.matplotlib.patches.Ellipse
                     ellipse = ellipse_f(xy=(ds[1,s], ds[2,s]), width=2sigma_1, height=2sigma_2, edgecolor=colors[s], fc="None", linestyle="dotted")
-                    ax["add_patch"](ellipse)
+                    ax.add_patch(ellipse)
                     offset = (extent[2] - extent[1]) * size(density_all, 4) / 32
-                    ax["text"](ds[1,s]+offset, ds[2,s], "$(s)", ha="center", va="center", color="0.5")
+                    ax.text(ds[1,s]+offset, ds[2,s], "$(s)", ha="center", va="center", color="0.5")
                 end
             end
         end
     end
 
     for s1 in 1:size(density_all, 4)
-        axes[end, s1]["set_xlabel"](L"q_1")
+        axes[end, s1].set_xlabel(L"q_1")
     end
 
     for s2 in 1:size(density_all, 3)
-        axes[s2, 1]["set_ylabel"](L"q_2")
+        axes[s2, 1].set_ylabel(L"q_2")
     end
 
-    fig["colorbar"](cf; ax=vec(axes), use_gridspec=true)
+    fig.colorbar(cf; ax=vec(axes), use_gridspec=true)
 
     savefig(out_path, bbox_inches="tight")
 end

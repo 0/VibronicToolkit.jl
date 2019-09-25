@@ -61,14 +61,14 @@ if c[:sampling_conf] !== nothing
     # Draw sampling distribution.
     ds = sampling_sys.ds
     ws = weights(sampling_sys, sampling_beta)
-    colors = map(plt["matplotlib"]["colors"]["hsv_to_rgb"], [(0.4, w, 0.8) for w in ws])
+    colors = map(plt.matplotlib.colors.hsv_to_rgb, [(0.4, w, 0.8) for w in ws])
     scatter(ds[1,:], ds[2,:], marker="+", c=colors)
     for s in 1:size(ds, 2)
         sigma_1 = path_mean_std(sampling_sys, sampling_beta, P, s, 1)
         sigma_2 = path_mean_std(sampling_sys, sampling_beta, P, s, 2)
-        ellipse_f = plt["matplotlib"]["patches"]["Ellipse"]
+        ellipse_f = plt.matplotlib.patches.Ellipse
         ellipse = ellipse_f(xy=(ds[1,s], ds[2,s]), width=2sigma_1, height=2sigma_2, edgecolor=colors[s], fc="None", linestyle="dotted")
-        gca()["add_patch"](ellipse)
+        gca().add_patch(ellipse)
         offset = (extent[2] - extent[1]) / 32
         text(ds[1,s]+offset, ds[2,s], "$(s)", ha="center", va="center", color="0.5")
     end
