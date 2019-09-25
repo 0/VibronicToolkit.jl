@@ -34,6 +34,11 @@ s.autofix_names = true
     "--contour"
         help = "draw contours instead of smooth gradients"
         action = :store_true
+    "--num-levels"
+        metavar = "L"
+        help = "number of contour levels"
+        arg_type = Int
+        default = 20
 end
 c = parse_args(ARGS, s, as_symbols=true)
 
@@ -45,13 +50,14 @@ if c[:sampling_conf] !== nothing
 end
 extent = Tuple(parse.(Float64, split(c[:extent], ",")))
 out_path = c[:out_path]
+num_levels = c[:num_levels]
 
 # Draw PES.
 gp = GroundPes(sys, extent)
 pes = gp.pes
 if c[:contour]
-    cf = contourf(pes, origin="lower", extent=extent, cmap="magma_r")
-    contour(pes, origin="lower", extent=extent, colors="0.5", linestyles="solid", linewidths=0.2)
+    cf = contourf(pes, levels=num_levels, origin="lower", extent=extent, cmap="magma_r")
+    contour(pes, levels=num_levels, origin="lower", extent=extent, colors="0.5", linestyles="solid", linewidths=0.2)
 else
     cf = imshow(pes, origin="lower", aspect="auto", extent=extent, cmap="magma_r")
 end

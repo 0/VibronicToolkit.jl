@@ -49,6 +49,11 @@ s.autofix_names = true
     "--contour"
         help = "draw contours instead of smooth gradients"
         action = :store_true
+    "--num-levels"
+        metavar = "L"
+        help = "number of contour levels"
+        arg_type = Int
+        default = 20
     "--quiet"
         help = "suppress progress meter"
         action = :store_true
@@ -64,6 +69,7 @@ if c[:sampling_conf] !== nothing
 end
 extent = Tuple(parse.(Float64, split(c[:extent], ",")))
 out_path = c[:out_path]
+num_levels = c[:num_levels]
 if c[:quiet]
     progress_output = devnull
 else
@@ -97,7 +103,7 @@ for (density_all, out_path) in zip(densities, out_paths)
     vmin, vmax = minimum(density_all), maximum(density_all)
 
     if c[:contour]
-        levels = range(vmin; stop=vmax, length=13)
+        levels = range(vmin; stop=vmax, length=num_levels)
     end
 
     clf()
