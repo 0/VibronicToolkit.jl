@@ -21,6 +21,11 @@ function DenseSystem(freq::AbstractMatrix{Float64}, coef::AbstractVector)
     DenseSystem(freq, HamiltonianCoefficients{S,M}(coef...))
 end
 
+function DenseSystem(freq::AbstractMatrix{Float64}, coef)
+    (M, S) = size(freq)
+    DenseSystem(freq, HamiltonianCoefficients{S,M}(coef))
+end
+
 bare(::Type{T}) where {T<:DenseSystem} = DenseSystem
 
 function diag(sys::DenseSystem{S,M}) where {S,M}

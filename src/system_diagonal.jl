@@ -37,6 +37,11 @@ function DiagonalSystem(freq::AbstractMatrix{Float64}, coef::AbstractVector)
     DiagonalSystem(freq, HamiltonianCoefficients{S,M}(coef...))
 end
 
+function DiagonalSystem(freq::AbstractMatrix{Float64}, coef)
+    (M, S) = size(freq)
+    DiagonalSystem(freq, HamiltonianCoefficients{S,M}(coef))
+end
+
 bare(::Type{T}) where {T<:DiagonalSystem} = DiagonalSystem
 
 diag(sys::DiagonalSystem) = sys

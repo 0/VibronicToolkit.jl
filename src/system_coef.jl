@@ -104,12 +104,14 @@ function isdiag(coef::HamiltonianCoefficients)
 end
 
 """
-    mode_indices(xs::Array{Float64})
+    mode_indices(xs::Array{Float64}; dims::Int=2)
 
 Find the `CartesianIndices` corresponding to the mode dimensions of `xs` (i.e.
-all but the last 2 dimensions).
+all but the last `dims` dimensions).
 """
-mode_indices(xs::Array{Float64}) = CartesianIndices(size(xs)[1:end-2])
+function mode_indices(xs::Array{Float64}; dims::Int=2)
+    CartesianIndices(size(xs)[1:(end-dims)])
+end
 
 """
     coefficients(f::Function, coef::HamiltonianCoefficients)
