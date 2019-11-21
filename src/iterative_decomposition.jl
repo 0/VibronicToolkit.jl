@@ -45,7 +45,7 @@ function IterativeDecomposition(sys::System{S,M}, max_iter::Int; sigma_cutoff::F
     # Remaining tensor values.
     x_energy = copy(sys.energy)
     x_lin = copy(sys.lin)
-    x_quad = 2 * copy(sys.quad)
+    x_quad = copy(sys.quad)
 
     # Generated vectors and coefficients.
     vs = Matrix{Float64}(undef, S, 0)
@@ -162,7 +162,7 @@ function IterativeDecomposition(sys::System{S,M}, max_iter::Int; sigma_cutoff::F
         err < 1e-14 || error("Maximum deviation: $(err)")
         for m2 in 1:M
             recovered_quad = x_quad[m2, m1, :, :] + sum([ws_quad[m2, m1, n]*vs[:, n]*vs[:, n]' for n in 1:S_iter])
-            err = maximum(abs.((2 * sys.quad[m2, m1, :, :] - recovered_quad)))
+            err = maximum(abs.((sys.quad[m2, m1, :, :] - recovered_quad)))
             err < 1e-14 || error("Maximum deviation: $(err)")
         end
     end
@@ -186,7 +186,7 @@ function DiagonalSystem(decomp::IterativeDecomposition{S,S_,M}) where {S,S_,M}
             freq[m1, s] = decomp.sys.freq[m1, 1]
             lin[m1, s, s] = decomp.ws_lin[m1, s]
             for m2 in 1:M
-                quad[m1, m2, s, s] = 0.5 * decomp.ws_quad[m1, m2, s]
+                quad[m1, m2, s, s] = decomp.ws_quad[m1, m2, s]
             end
         end
     end
