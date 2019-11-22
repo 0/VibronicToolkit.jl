@@ -88,7 +88,7 @@ struct PigsSampling <: Sampling
 end
 
 """
-    PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
+    PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_trial::Maybe{TrialWavefunction}=nothing, progress_output::IO=stderr)
 
 Calculate the solution for `sys` with `trial` propagated by `beta` using `P`
 links and `num_samples` random samples.

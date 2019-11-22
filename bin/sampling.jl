@@ -65,10 +65,16 @@ end
 if c[:pigs]
     trial = UniformTrialWavefunction(sys)
 
+    if sampling_sys !== nothing
+        sampling_trial = UniformTrialWavefunction(sampling_sys)
+    else
+        sampling_trial = nothing
+    end
+
     if dbeta !== nothing
         error("Finite difference not supported for PIGS")
     else
-        sampling = PigsSampling(sys, trial, beta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
+        sampling = PigsSampling(sys, trial, beta, P, num_samples; sampling_sys=sampling_sys, sampling_trial=sampling_trial, progress_output=progress_output)
     end
 
     println("Z: $(sampling.Z) ± $(sampling.Z_err)")
