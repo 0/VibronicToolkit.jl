@@ -36,6 +36,11 @@ let sys = DenseSystem(test_params_trivial...),
     end
     @test V == V_exp
 
+    p2, U = operators(basis, sys; splitting=p2_U)
+    @test p2 != h0
+    @test U != V
+    @test p2 + U == h0 + V
+
     Vs = vectors(basis)
     conf1 = Vs[:, 24]
     @test conf1 == [1, 2, 3]

@@ -97,18 +97,25 @@ Create a multi-mode identity operator in `basis`.
 mkid(basis::Basis) = mkop(basis, id(basis), 1)
 
 """
-    operators(basis::Basis{S,M}, sys::System{S,M})
+    operators(basis::Basis{S,M}, sys::System{S,M}; splitting::Splitting=h0_V)
 
-Create `h0` and `V` operators in `basis` for the system described by `sys`.
+Split the Hamiltonian `H` for the system described by `sys` into operators `A`
+and `B` in `basis` so that `H = A + B`. The choice of operators is determined
+by `splitting`.
 """
-function operators(basis::Basis{S,M}, sys::System{S,M}) where {S,M}
+function operators(basis::Basis{S,M}, sys::System{S,M}; splitting::Splitting=h0_V) where {S,M}
     # It's simpler to populate the values into higher rank tensors.
-    h0s = zeros(basis.dim1, basis.dim1, S, S)
-    Vs = zeros(basis.dim1, basis.dim1, S, S)
+    As = zeros(basis.dim1, basis.dim1, S, S)
+    Bs = zeros(basis.dim1, basis.dim1, S, S)
 
     for s in 1:S
         for m in 1:M
-            h0s[:, :, s, s] .+= sys.freq[m, s] * (mkop(basis, n, m) + 0.5 * mkop(basis, id, m))
+            As[:, :, s, s] .+= sys.freq[m, s] * (mkop(basis, n, m) + 0.5 * mkop(basis, id, m))
+
+            if splitting == p2_U
+                As[:, :, s, s] .-= sys.freq[m, s] * 0.5 * mkop(basis, q, m)^2
+                Bs[:, :, s, s] .+= sys.freq[m, s] * 0.5 * mkop(basis, q, m)^2
+            end
         end
     end
 
@@ -118,19 +125,25 @@ function operators(basis::Basis{S,M}, sys::System{S,M}) where {S,M}
             k *= mkop(basis, q, m)
         end
         if ord <= 1 && s1 == s2
-            h0s[:, :, s1, s1] .+= k
+            if splitting == h0_V
+                As[:, :, s1, s1] .+= k
+            elseif splitting == p2_U
+                Bs[:, :, s1, s1] .+= k
+            else
+                error("Unsupported splitting: $(splitting)")
+            end
         else
-            Vs[:, :, s2, s1] .+= k
+            Bs[:, :, s2, s1] .+= k
         end
     end
 
     # Flatten into matrices.
-    h0 = reshape(permutedims(h0s, [1, 3, 2, 4]), (basis.dim, basis.dim))
-    maximum(abs.(h0' - h0)) < 1e-13 || @warn "Asymmetric h0: $(maximum(abs.(h0' - h0)))"
-    V = reshape(permutedims(Vs, [1, 3, 2, 4]), (basis.dim, basis.dim))
-    maximum(abs.(V' - V)) < 1e-13 || @warn "Asymmetric V: $(maximum(abs.(V' - V)))"
+    A = reshape(permutedims(As, [1, 3, 2, 4]), (basis.dim, basis.dim))
+    maximum(abs.(A' - A)) < 1e-13 || @warn "Asymmetric A: $(maximum(abs.(A' - A)))"
+    B = reshape(permutedims(Bs, [1, 3, 2, 4]), (basis.dim, basis.dim))
+    maximum(abs.(B' - B)) < 1e-13 || @warn "Asymmetric B: $(maximum(abs.(B' - B)))"
 
-    h0, V
+    A, B
 end
 
 """

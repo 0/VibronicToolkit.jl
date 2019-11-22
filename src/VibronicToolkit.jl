@@ -14,6 +14,10 @@ using StatsBase: Weights
 
 # We re-export diag and isdiag from LinearAlgebra.
 export
+    Splitting,
+    h0_V,
+    p2_U,
+
     DegeneracyException,
     SurfaceCouplingException,
 
@@ -46,6 +50,16 @@ export
     PigsDiagonalDensity,
 
     IterativeDecomposition
+
+"""
+Trotter splitting variant.
+"""
+@enum Splitting begin
+    h0_V
+    p2_U
+end
+@doc "Harmonic oscillators with low-order diagonal terms." h0_V
+@doc "Kinetic energy." p2_U
 
 """
 Solution for vibronic problem.
