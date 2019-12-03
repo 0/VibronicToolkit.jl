@@ -100,26 +100,30 @@ function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_
     isnothing(sampling_sys) && (sampling_sys = sys_diag_simple)
     sp = SamplingParameters(sampling_sys, beta, P)
 
-    samples = zeros(Float64, 3, num_samples)
+    samples_Z = zeros(Float64, num_samples)
+    samples_E = zeros(Float64, num_samples)
+    samples_Cv = zeros(Float64, num_samples)
 
     loop_samples(sp, num_samples, progress_output) do n, qs
         sample = get_sample_pt(sys, pseudosp, sp, qs)
-        samples[:, n] .= sample
+        samples_Z[n] = sample[1]
+        samples_E[n] = sample[2]
+        samples_Cv[n] = sample[3]
     end
 
     simple = Analytical(sampling_sys, beta)
     normalization = simple.Z
 
-    f_Z(sample, sample_E, sample_Cv) =
-        sample * normalization
-    f_E(sample, sample_E, sample_Cv) =
-        sample_E / sample
-    f_Cv(sample, sample_E, sample_Cv) =
-        (sample_Cv / sample - (sample_E / sample)^2) * beta^2
+    f_Z(sample_Z) =
+        sample_Z * normalization
+    f_E(sample_Z, sample_E) =
+        sample_E / sample_Z
+    f_Cv(sample_Z, sample_E, sample_Cv) =
+        (sample_Cv / sample_Z - (sample_E / sample_Z)^2) * beta^2
 
-    Z, Z_err = jackknife(f_Z, [samples[n, :] for n in 1:size(samples, 1)]...)
-    E, E_err = jackknife(f_E, [samples[n, :] for n in 1:size(samples, 1)]...)
-    Cv, Cv_err = jackknife(f_Cv, [samples[n, :] for n in 1:size(samples, 1)]...)
+    Z, Z_err = jackknife(f_Z, samples_Z)
+    E, E_err = jackknife(f_E, samples_Z, samples_E)
+    Cv, Cv_err = jackknife(f_Cv, samples_Z, samples_E, samples_Cv)
 
     SamplingPrimitiveThermodynamic(Z, Z_err, E, E_err, Cv, Cv_err)
 end

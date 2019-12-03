@@ -77,11 +77,15 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     isnothing(sampling_sys) && (sampling_sys = sys_diag_simple)
     sp = SamplingParameters(sampling_sys, beta, P)
 
-    samples = zeros(Float64, 3, num_samples)
+    samples_Z = zeros(Float64, num_samples)
+    samples_m = zeros(Float64, num_samples)
+    samples_p = zeros(Float64, num_samples)
 
     loop_samples(sp, num_samples, progress_output) do n, qs
         sample = get_sample_fd(sys, (pseudosp, pseudosp_m, pseudosp_p), sp, qs)
-        samples[:, n] .= sample
+        samples_Z[n] = sample[1]
+        samples_m[n] = sample[2]
+        samples_p[n] = sample[3]
     end
 
     simple = Analytical(sampling_sys, beta)
@@ -91,20 +95,20 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     Zrat_p = simple.Z / simple_p.Z
     normalization = simple.Z
 
-    f_Z(sample, sample_m, sample_p) =
-        sample * normalization
-    f_E(sample, sample_m, sample_p) =
+    f_Z(sample_Z) =
+        sample_Z * normalization
+    f_E(sample_Z, sample_m, sample_p) =
         simple.E +
-        1.0/(2dbeta) * (Zrat_m * sample_m - Zrat_p * sample_p) / sample
-    f_Cv(sample, sample_m, sample_p) =
+        1.0/(2dbeta) * (Zrat_m * sample_m - Zrat_p * sample_p) / sample_Z
+    f_Cv(sample_Z, sample_m, sample_p) =
         simple.Cv +
-        (1.0/dbeta^2 * (Zrat_m * sample_m + Zrat_p * sample_p) / sample -
+        (1.0/dbeta^2 * (Zrat_m * sample_m + Zrat_p * sample_p) / sample_Z -
          2.0/dbeta^2 -
          (E - simple.E)^2) * beta^2
 
-    Z, Z_err = jackknife(f_Z, [samples[n, :] for n in 1:size(samples, 1)]...)
-    E, E_err = jackknife(f_E, [samples[n, :] for n in 1:size(samples, 1)]...)
-    Cv, Cv_err = jackknife(f_Cv, [samples[n, :] for n in 1:size(samples, 1)]...)
+    Z, Z_err = jackknife(f_Z, samples_Z)
+    E, E_err = jackknife(f_E, samples_Z, samples_m, samples_p)
+    Cv, Cv_err = jackknife(f_Cv, samples_Z, samples_m, samples_p)
 
     SamplingFiniteDifference(Z, Z_err, E, E_err, Cv, Cv_err)
 end
