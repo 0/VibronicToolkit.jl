@@ -24,7 +24,7 @@ function get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{
 
     for i1 in 1:P
         # Next index in cyclic path.
-        i2 = i1%P+1
+        i2 = mod(i1+1, 1:P)
 
         scaling = nothing
 
@@ -83,7 +83,7 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     pseudosp_m = SamplingParameters(sys_diag_simple, beta-dbeta, P)
     pseudosp_p = SamplingParameters(sys_diag_simple, beta+dbeta, P)
 
-    sampling_sys === nothing && (sampling_sys = sys_diag_simple)
+    isnothing(sampling_sys) && (sampling_sys = sys_diag_simple)
     sp = SamplingParameters(sampling_sys, beta, P)
 
     samples = zeros(Float64, 3, num_samples)

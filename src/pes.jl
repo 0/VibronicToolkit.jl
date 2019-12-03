@@ -22,8 +22,8 @@ function GroundPes(sys::System{S,2}, extent::NTuple{4,Float64}; lengths::NTuple{
     q1_length, q2_length = lengths
     pes = zeros(q2_length, q1_length)
 
-    for (i, q1) in enumerate(range(q1_min; stop=q1_max, length=q1_length))
-        for (j, q2) in enumerate(range(q2_min; stop=q2_max, length=q2_length))
+    for (i, q1) in enumerate(range(q1_min, q1_max; length=q1_length))
+        for (j, q2) in enumerate(range(q2_min, q2_max; length=q2_length))
             # Lowest eigenvalue of potential matrix.
             pes[j, i] = eigvals(potential(sys, [q1, q2]))[1]
         end

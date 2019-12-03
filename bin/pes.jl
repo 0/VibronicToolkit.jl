@@ -43,7 +43,7 @@ end
 c = parse_args(ARGS, s, as_symbols=true)
 
 sys = read(c[:conf], DenseSystem)
-if c[:sampling_conf] !== nothing
+if !isnothing(c[:sampling_conf])
     sampling_sys = read(c[:sampling_conf], DiagonalSystem)
     sampling_beta = c[:sampling_beta]
     P = c[:num_links]
@@ -63,7 +63,7 @@ else
 end
 colorbar(cf)
 
-if c[:sampling_conf] !== nothing
+if !isnothing(c[:sampling_conf])
     # Draw sampling distribution.
     ds = sampling_sys.ds
     ws = weights(sampling_sys, sampling_beta)

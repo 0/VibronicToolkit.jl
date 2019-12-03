@@ -212,7 +212,7 @@ function sampling_matrix_free_particle(sp::AbstractSamplingParameters{S,M,P}, qs
         end
         FM[s, s] += exp(x) / sqrt(sp.S_prods[s])
     end
-    scaling === nothing && (scaling = maximum(FM))
+    isnothing(scaling) && (scaling = maximum(FM))
     FM/scaling, scaling
 end
 
@@ -225,7 +225,8 @@ function sampling_matrix_interaction(sys::System{S,M}, sp::AbstractSamplingParam
         end
         preIM[s2, s1] += val
     end
-    Symmetric(preIM), exp(Symmetric(-prefactor * sp.tau * preIM))
+    preIM = Symmetric(preIM)
+    preIM, exp(-prefactor * sp.tau * preIM)
 end
 
 function sampling_matrix_energy(sp::SamplingParameters{S,M,P}, qs1::Vector{Float64}, qs2::Vector{Float64}) where {S,M,P}

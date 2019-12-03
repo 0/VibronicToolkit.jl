@@ -36,6 +36,6 @@ out_vs = c[:out_vs]
 decomp = IterativeDecomposition(sys, max_iter)
 
 write(out_conf, DiagonalSystem(decomp))
-if out_vs !== nothing
+if !isnothing(out_vs)
     writedlm(out_vs, permutedims(decomp.vs))
 end

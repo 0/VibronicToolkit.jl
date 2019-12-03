@@ -103,8 +103,8 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
     sys_diag_simple = simplify(sys_diag)
     pseudosp = PigsSamplingParameters(sys_diag_simple, trial, beta, P)
 
-    sampling_sys === nothing && (sampling_sys = sys_diag_simple)
-    sampling_trial === nothing && (sampling_trial = trial)
+    isnothing(sampling_sys) && (sampling_sys = sys_diag_simple)
+    isnothing(sampling_trial) && (sampling_trial = trial)
     sp = PigsSamplingParameters(sampling_sys, sampling_trial, beta, P)
 
     samples = zeros(Float64, 2, num_samples)

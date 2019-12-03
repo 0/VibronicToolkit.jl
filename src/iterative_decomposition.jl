@@ -69,7 +69,7 @@ function IterativeDecomposition(sys::System{S,M}, max_iter::Int; sigma_cutoff::F
         sigma = F.S[1]
 
         # Stopping criterion.
-        if first_sigma === nothing
+        if isnothing(first_sigma)
             first_sigma = sigma
         elseif sigma < sigma_cutoff*first_sigma
             break

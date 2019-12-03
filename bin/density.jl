@@ -63,7 +63,7 @@ c = parse_args(ARGS, s, as_symbols=true)
 sys = read(c[:conf], DenseSystem)
 beta = c[:beta]
 basis_size = c[:basis_size]
-if c[:sampling_conf] !== nothing
+if !isnothing(c[:sampling_conf])
     sampling_sys = read(c[:sampling_conf], DiagonalSystem)
     P = c[:num_links]
 end
@@ -87,7 +87,7 @@ end
 
 densities = [density_all]
 out_paths = [out_path]
-if c[:pigs] && c[:out_path_exact] !== nothing
+if c[:pigs] && !isnothing(c[:out_path_exact])
     push!(densities, density_all_exact)
     push!(out_paths, c[:out_path_exact])
 end
@@ -103,7 +103,7 @@ for (density_all, out_path) in zip(densities, out_paths)
     vmin, vmax = minimum(density_all), maximum(density_all)
 
     if c[:contour]
-        levels = range(vmin; stop=vmax, length=num_levels)
+        levels = range(vmin, vmax; length=num_levels)
     end
 
     clf()
@@ -126,7 +126,7 @@ for (density_all, out_path) in zip(densities, out_paths)
                 global cf = ax.imshow(density, origin="lower", aspect="auto", extent=extent, vmin=vmin, vmax=vmax, cmap="magma")
             end
 
-            if c[:sampling_conf] !== nothing
+            if !isnothing(c[:sampling_conf])
                 # Draw sampling distribution.
                 ds = sampling_sys.ds
                 ws = weights(sampling_sys, beta)

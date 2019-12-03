@@ -44,14 +44,14 @@ c = parse_args(ARGS, s, as_symbols=true)
 
 sys = read(c[:conf], DenseSystem)
 beta = c[:beta]
-if c[:dbeta] !== nothing
+if !isnothing(c[:dbeta])
     dbeta = c[:dbeta] * beta
 else
     dbeta = nothing
 end
 P = c[:num_links]
 num_samples = c[:num_samples]
-if c[:sampling_conf] !== nothing
+if !isnothing(c[:sampling_conf])
     sampling_sys = read(c[:sampling_conf], DiagonalSystem)
 else
     sampling_sys = nothing
@@ -65,13 +65,13 @@ end
 if c[:pigs]
     trial = UniformTrialWavefunction(sys)
 
-    if sampling_sys !== nothing
+    if !isnothing(sampling_sys)
         sampling_trial = UniformTrialWavefunction(sampling_sys)
     else
         sampling_trial = nothing
     end
 
-    if dbeta !== nothing
+    if !isnothing(dbeta)
         error("Finite difference not supported for PIGS")
     else
         sampling = PigsSampling(sys, trial, beta, P, num_samples; sampling_sys=sampling_sys, sampling_trial=sampling_trial, progress_output=progress_output)
@@ -82,7 +82,7 @@ if c[:pigs]
     println("SvN: $(sampling.SvN) ± $(sampling.SvN_err)")
     println("S2: $(sampling.S2) ± $(sampling.S2_err)")
 else
-    if dbeta !== nothing
+    if !isnothing(dbeta)
         sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
     else
         sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)

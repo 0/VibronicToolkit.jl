@@ -29,7 +29,7 @@ function DiagonalDensity(sys::System{S,2}, beta::Float64, basis_size::Int, exten
     h0, V = operators(basis, sys)
     basis_vectors = vectors(basis)
 
-    F = eigen(Symmetric(h0 + V))
+    F = eigen(h0 + V)
     Es = F.values
     Vs = F.vectors
 
@@ -42,8 +42,8 @@ function DiagonalDensity(sys::System{S,2}, beta::Float64, basis_size::Int, exten
     wfs = Array{Float64}(undef, basis.dim, S)
 
     meter = Progress(q1_length, output=progress_output)
-    for (i, q1) in ProgressWrapper(enumerate(range(q1_min; stop=q1_max, length=q1_length)), meter)
-        for (j, q2) in enumerate(range(q2_min; stop=q2_max, length=q2_length))
+    for (i, q1) in ProgressWrapper(enumerate(range(q1_min, q1_max; length=q1_length)), meter)
+        for (j, q2) in enumerate(range(q2_min, q2_max; length=q2_length))
             fill!(wfs, 0.0)
             for idx in 1:basis.dim
                 s = basis_vectors[M+1, idx]
@@ -86,7 +86,7 @@ function PigsDiagonalDensity(sys::System{S,2}, trial::TrialWavefunction{S,2}, be
     h0, V = operators(basis, sys)
     basis_vectors = vectors(basis)
 
-    F = eigen(Symmetric(h0 + V))
+    F = eigen(h0 + V)
     Es = F.values
     Vs = F.vectors
 
@@ -109,8 +109,8 @@ function PigsDiagonalDensity(sys::System{S,2}, trial::TrialWavefunction{S,2}, be
     density_exact = zeros(q2_length, q1_length, S, S)
 
     meter = Progress(q1_length, output=progress_output)
-    for (i, q1) in ProgressWrapper(enumerate(range(q1_min; stop=q1_max, length=q1_length)), meter)
-        for (j, q2) in enumerate(range(q2_min; stop=q2_max, length=q2_length))
+    for (i, q1) in ProgressWrapper(enumerate(range(q1_min, q1_max; length=q1_length)), meter)
+        for (j, q2) in enumerate(range(q2_min, q2_max; length=q2_length))
             wfs = zeros(Float64, S)
             wfs_exact = zeros(Float64, S)
             for idx in 1:basis.dim

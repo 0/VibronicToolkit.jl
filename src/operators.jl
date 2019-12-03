@@ -46,7 +46,7 @@ a(basis::Basis) = diagm(1 => sqrt.(1.0:basis.size-1))
 
 Number operator in `basis` for a single mode.
 """
-n(basis::Basis) = diagm(0 => 0.0:basis.size-1)
+n(basis::Basis) = diagm(0.0:basis.size-1)
 
 """
     q(basis::Basis)
@@ -143,7 +143,7 @@ function operators(basis::Basis{S,M}, sys::System{S,M}; splitting::Splitting=h0_
     B = reshape(permutedims(Bs, [1, 3, 2, 4]), (basis.dim, basis.dim))
     maximum(abs.(B' - B)) < 1e-13 || @warn "Asymmetric B: $(maximum(abs.(B' - B)))"
 
-    A, B
+    Symmetric(A), Symmetric(B)
 end
 
 """

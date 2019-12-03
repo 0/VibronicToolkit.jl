@@ -26,7 +26,7 @@ function SumOverStates(sys::System, beta::Float64, basis_size::Int)
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 
-    Es = eigvals(Symmetric(h0 + V))
+    Es = eigvals(h0 + V)
 
     Z = sum(exp.(-beta * Es))
     E = sum(exp.(-beta * Es) .* Es) / Z
@@ -66,7 +66,7 @@ function PigsSumOverStates(sys::System{S,M}, trial::TrialWavefunction{S,M}, beta
     basis = Basis(sys, basis_size)
     h0, V = operators(basis, sys)
 
-    F = eigen(Symmetric(h0 + V))
+    F = eigen(h0 + V)
     Es = F.values
     Vs = F.vectors
 

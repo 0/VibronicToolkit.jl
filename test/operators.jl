@@ -31,7 +31,7 @@ let sys = DenseSystem(test_params_trivial...),
             s1 == s2 && continue
             idx1 = ((s1-1)*basis.dim1+1):(s1*basis.dim1)
             idx2 = ((s2-1)*basis.dim1+1):(s2*basis.dim1)
-            V_exp[idx2, idx1] .+= Matrix(I, basis.dim1, basis.dim1)
+            V_exp[idx2, idx1] .+= I(basis.dim1)
         end
     end
     @test V == V_exp
@@ -50,6 +50,6 @@ let sys = DenseSystem(test_params_trivial...),
     @test conf2 == [2, 0, 3]
     vector2 = zeros(basis.dim)
     vector2[25] = sqrt(2.0)^2
-    @test vector2 == kron(Matrix(I, test_S, test_S),
+    @test vector2 == kron(I(test_S),
                           mkop(basis, a, 2)^2 * mkop(basis, a, 1)') * vector1
 end

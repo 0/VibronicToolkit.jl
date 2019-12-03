@@ -24,7 +24,7 @@ function get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp
 
     for i1 in 1:P
         # Next index in cyclic path.
-        i2 = i1%P+1
+        i2 = mod(i1+1, 1:P)
 
         # Numerator.
         FM_num, scaling = sampling_matrix_free_particle(pseudosp, qs[i1, :], qs[i2, :])
@@ -106,7 +106,7 @@ function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_
     sys_diag_simple = simplify(sys_diag)
     pseudosp = SamplingParameters(sys_diag_simple, beta, P)
 
-    sampling_sys === nothing && (sampling_sys = sys_diag_simple)
+    isnothing(sampling_sys) && (sampling_sys = sys_diag_simple)
     sp = SamplingParameters(sampling_sys, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
