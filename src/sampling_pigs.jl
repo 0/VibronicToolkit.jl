@@ -110,6 +110,8 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
     simple = PigsAnalytical(sampling_sys, sampling_trial, beta)
     normalization = simple.Z
 
+    f_Z(sample, sample_E) =
+        sample * normalization
     f_E(sample, sample_E) =
         sample_E / sample
     f_SvN(sample, rho) =
@@ -117,8 +119,7 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
     f_S2(sample, rho) =
         S_renyi(rho / sample)
 
-    Z = mean(samples[1, :]) * normalization
-    Z_err = std(samples[1, :]) / sqrt(num_samples) * normalization
+    Z, Z_err = jackknife(f_Z, [samples[n, :] for n in 1:size(samples, 1)]...)
     E, E_err = jackknife(f_E, [samples[n, :] for n in 1:size(samples, 1)]...)
     SvN, SvN_err = jackknife(f_SvN, samples[1, :], rhos)
     S2, S2_err = jackknife(f_S2, samples[1, :], rhos)
