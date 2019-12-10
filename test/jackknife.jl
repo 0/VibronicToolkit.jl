@@ -25,11 +25,11 @@ function propagate_errors_nonlinear2(f, dfx, dfy, dfxx, dfxy, dfyy, xs, ys)
     unbiased_mean, err
 end
 
-compare_stats((mu1, err1), (mu2, err2)) = isapprox(mu1, mu2; rtol=1e-11) && isapprox(err1, err2; rtol=1e-6)
+compare_stats((mu1, err1), (mu2, err2)) = isapprox(mu1, mu2; rtol=1e-9) && isapprox(err1, err2; rtol=1e-8)
 
 let rng = MersenneTwister(0x1234),
-    xs = randn(rng, 10000),
-    ys = randn(rng, 10000)
+    xs = randn(rng, 1_000_000),
+    ys = -xs .+ 0.5
 
     # Linear function of a single variable.
     l1a(x) = 2x-3.7
