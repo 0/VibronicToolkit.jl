@@ -95,20 +95,21 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     Zrat_p = simple.Z / simple_p.Z
     normalization = simple.Z
 
-    f_Z(sample_Z) =
+    Z, Z_err = jackknife(samples_Z) do sample_Z
         sample_Z * normalization
-    f_E(sample_Z, sample_m, sample_p) =
+    end
+
+    E, E_err = jackknife(samples_Z, samples_m, samples_p) do sample_Z, sample_m, sample_p
         simple.E +
         1.0/(2dbeta) * (Zrat_m * sample_m - Zrat_p * sample_p) / sample_Z
-    f_Cv(sample_Z, sample_m, sample_p) =
+    end
+
+    Cv, Cv_err = jackknife(samples_Z, samples_m, samples_p) do sample_Z, sample_m, sample_p
         simple.Cv +
         (1.0/dbeta^2 * (Zrat_m * sample_m + Zrat_p * sample_p) / sample_Z -
          2.0/dbeta^2 -
          (E - simple.E)^2) * beta^2
-
-    Z, Z_err = jackknife(f_Z, samples_Z)
-    E, E_err = jackknife(f_E, samples_Z, samples_m, samples_p)
-    Cv, Cv_err = jackknife(f_Cv, samples_Z, samples_m, samples_p)
+    end
 
     SamplingFiniteDifference(Z, Z_err, E, E_err, Cv, Cv_err)
 end
