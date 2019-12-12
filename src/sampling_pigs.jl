@@ -1,20 +1,11 @@
 # Monte Carlo solution for PIGS.
 
 """
-    get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,P}, sp::PigsSamplingParameters{S_,M,P})
+    get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,P}, sp::PigsSamplingParameters{S_,M,P}, qs::Matrix{Float64})
 
-Compute a sample for `sys` using `pseudosp` and `sp`.
+Compute a sample for `sys` using `pseudosp`, `sp`, and the points `qs`.
 """
-function get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,P}, sp::PigsSamplingParameters{S_,M,P}) where {S,S_,M,P}
-    # Choose a surface.
-    s_ = sample(1:S_, sp.weights)
-
-    # Sample coordinates.
-    qs = zeros(P+1, M)
-    for m in 1:M
-        qs[:, m] .= rand(sp.mvns[m, s_])
-    end
-
+function get_sample_pigs(sys::System{S,M}, pseudosp::PigsSamplingParameters{S,M,P}, sp::PigsSamplingParameters{S_,M,P}, qs::Matrix{Float64}) where {S,S_,M,P}
     # Calculate the numerator and denominator matrices.
     num_L = Matrix{Float64}(I, S, S)
     num_R = Matrix{Float64}(I, S, S)
@@ -109,9 +100,9 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
 
     samples = zeros(Float64, 2, num_samples)
     rhos = Matrix{Float64}[]
-    meter = Progress(num_samples, output=progress_output)
-    for n in ProgressWrapper(1:num_samples, meter)
-        sample = get_sample_pigs(sys, pseudosp, sp)
+
+    loop_samples(sp, num_samples, progress_output) do n, qs
+        sample = get_sample_pigs(sys, pseudosp, sp, qs)
         samples[:, n] .= sample[1:2]
         push!(rhos, sample[3])
     end

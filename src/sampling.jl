@@ -6,6 +6,13 @@ Sampling parameters for a particular system.
 abstract type AbstractSamplingParameters{S,M,P} end
 
 """
+    num_beads(sp::AbstractSamplingParameters)
+
+Number of beads in `sp`.
+"""
+function num_beads end
+
+"""
 Sampling parameters for a particular system at finite temperature.
 """
 struct SamplingParameters{S,M,P} <: AbstractSamplingParameters{S,M,P}
@@ -90,6 +97,8 @@ function Base.show(io::IO, sp::SamplingParameters{S,M,P}) where {S,M,P}
     show_vector(io, weights(sp))
     nothing
 end
+
+num_beads(::SamplingParameters{S,M,P}) where {S,M,P} = P
 
 """
 Sampling parameters for a particular PIGS system.
@@ -181,6 +190,8 @@ function Base.show(io::IO, sp::PigsSamplingParameters{S,M,P}) where {S,M,P}
     nothing
 end
 
+num_beads(::PigsSamplingParameters{S,M,P}) where {S,M,P} = P+1
+
 """
     weights(sp::AbstractSamplingParameters)
 
@@ -257,3 +268,5 @@ function sampling_matrix_heat_capacity(sp::SamplingParameters{S,M,P}, qs1::Vecto
     end
     CM1
 end
+
+include("sampling_methods.jl")

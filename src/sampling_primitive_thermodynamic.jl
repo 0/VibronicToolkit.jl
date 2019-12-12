@@ -2,20 +2,11 @@
 # estimators.
 
 """
-    get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp::SamplingParameters{S_,M,P})
+    get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp::SamplingParameters{S_,M,P}, qs::Matrix{Float64})
 
-Compute a sample for `sys` using `pseudosp` and `sp`.
+Compute a sample for `sys` using `pseudosp`, `sp`, and the points `qs`.
 """
-function get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp::SamplingParameters{S_,M,P}) where {S,S_,M,P}
-    # Choose a surface.
-    s_ = sample(1:S_, sp.weights)
-
-    # Sample coordinates.
-    qs = zeros(P, M)
-    for m in 1:M
-        qs[:, m] .= rand(sp.mvns[m, s_])
-    end
-
+function get_sample_pt(sys::System{S,M}, pseudosp::SamplingParameters{S,M,P}, sp::SamplingParameters{S_,M,P}, qs::Matrix{Float64}) where {S,S_,M,P}
     # Calculate the numerator, energy, heat capacity, and denominator matrices.
     num = Matrix{Float64}(I, S, S)
     num_Es = [Matrix{Float64}(I, S, S) for _ in 1:P]
@@ -110,9 +101,10 @@ function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_
     sp = SamplingParameters(sampling_sys, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
-    meter = Progress(num_samples, output=progress_output)
-    for n in ProgressWrapper(1:num_samples, meter)
-        samples[:, n] .= get_sample_pt(sys, pseudosp, sp)
+
+    loop_samples(sp, num_samples, progress_output) do n, qs
+        sample = get_sample_pt(sys, pseudosp, sp, qs)
+        samples[:, n] .= sample
     end
 
     simple = Analytical(sampling_sys, beta)

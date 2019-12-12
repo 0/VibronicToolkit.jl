@@ -2,21 +2,12 @@
 # estimators.
 
 """
-    get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{S,M,P}}, sp::SamplingParameters{S_,M,P})
+    get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{S,M,P}}, sp::SamplingParameters{S_,M,P}, qs::Matrix{Float64})
 
-Compute a sample for `sys` using `pseudosps` and `sp`.
+Compute a sample for `sys` using `pseudosps`, `sp`, and the points `qs`.
 """
-function get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{S,M,P}}, sp::SamplingParameters{S_,M,P}) where {S,S_,M,P,N}
+function get_sample_fd(sys::System{S,M}, pseudosps::NTuple{N,SamplingParameters{S,M,P}}, sp::SamplingParameters{S_,M,P}, qs::Matrix{Float64}) where {S,S_,M,P,N}
     length(pseudosps) >= 1 || throw(DomainError(length(pseudosps), "At least one set of parameters."))
-
-    # Choose a surface.
-    s_ = sample(1:S_, sp.weights)
-
-    # Sample coordinates.
-    qs = zeros(P, M)
-    for m in 1:M
-        qs[:, m] .= rand(sp.mvns[m, s_])
-    end
 
     # Calculate the numerator and denominator matrices.
     nums = [Matrix{Float64}(I, S, S) for _ in 1:N]
@@ -87,9 +78,10 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     sp = SamplingParameters(sampling_sys, beta, P)
 
     samples = zeros(Float64, 3, num_samples)
-    meter = Progress(num_samples, output=progress_output)
-    for n in ProgressWrapper(1:num_samples, meter)
-        samples[:, n] .= get_sample_fd(sys, (pseudosp, pseudosp_m, pseudosp_p), sp)
+
+    loop_samples(sp, num_samples, progress_output) do n, qs
+        sample = get_sample_fd(sys, (pseudosp, pseudosp_m, pseudosp_p), sp, qs)
+        samples[:, n] .= sample
     end
 
     simple = Analytical(sampling_sys, beta)
