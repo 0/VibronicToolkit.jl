@@ -207,11 +207,6 @@ temperature.
 """
 weights(sys::DiagonalSystem, beta::Float64) = weights(SamplingParameters(sys, beta, 2))
 
-"""
-Monte Carlo solution for an arbitrary system.
-"""
-abstract type Sampling <: Solution end
-
 function sampling_matrix_free_particle(sp::AbstractSamplingParameters{S,M,P}, qs1::Vector{Float64}, qs2::Vector{Float64}; scaling=nothing) where {S,M,P}
     FM = zeros(S, S)
     for s in 1:S
@@ -270,3 +265,12 @@ function sampling_matrix_heat_capacity(sp::SamplingParameters{S,M,P}, qs1::Vecto
 end
 
 include("sampling_methods.jl")
+
+"""
+Monte Carlo solution for an arbitrary system.
+"""
+abstract type Sampling <: Solution end
+
+include("sampling_finite_difference.jl")
+include("sampling_primitive_thermodynamic.jl")
+include("sampling_pigs.jl")
