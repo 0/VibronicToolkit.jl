@@ -57,17 +57,17 @@ struct SamplingFiniteDifference <: Sampling
 end
 
 """
-    SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
+    SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, sm::SamplingMethod; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
 
-Calculate the solution for `sys` at `beta` using `P` links, `num_samples`
-random samples, and finite difference step `dbeta`.
+Calculate the solution for `sys` at `beta` using `P` links, sampling method
+`sm`, and finite difference step `dbeta`.
 
 If `sampling_sys` is provided, it is used for sampling. Otherwise, sampling
 defaults to the simplified diagonal subsystem of `sys`.
 
 The progress meter is written to `progress_output`.
 """
-function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
+function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P::Int, sm::SamplingMethod; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
     pseudosp = SamplingParameters(sys_diag_simple, beta, P)
@@ -77,15 +77,8 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     isnothing(sampling_sys) && (sampling_sys = sys_diag_simple)
     sp = SamplingParameters(sampling_sys, beta, P)
 
-    samples_Z = zeros(Float64, num_samples)
-    samples_m = zeros(Float64, num_samples)
-    samples_p = zeros(Float64, num_samples)
-
-    loop_samples(sp, num_samples, progress_output) do n, qs
-        sample = get_sample_fd(sys, (pseudosp, pseudosp_m, pseudosp_p), sp, qs)
-        samples_Z[n] = sample[1]
-        samples_m[n] = sample[2]
-        samples_p[n] = sample[3]
+    result = loop_samples(sp, sm, [:Z, :m, :p], progress_output) do qs
+        get_sample_fd(sys, (pseudosp, pseudosp_m, pseudosp_p), sp, qs)
     end
 
     simple = Analytical(sampling_sys, beta)
@@ -95,16 +88,16 @@ function SamplingFiniteDifference(sys::System, beta::Float64, dbeta::Float64, P:
     Zrat_p = simple.Z / simple_p.Z
     normalization = simple.Z
 
-    Z, Z_err = jackknife(samples_Z) do sample_Z
+    Z, Z_err = analyze(result, :Z) do sample_Z
         sample_Z * normalization
     end
 
-    E, E_err = jackknife(samples_Z, samples_m, samples_p) do sample_Z, sample_m, sample_p
+    E, E_err = analyze(result, :Z, :m, :p) do sample_Z, sample_m, sample_p
         simple.E +
         1.0/(2dbeta) * (Zrat_m * sample_m - Zrat_p * sample_p) / sample_Z
     end
 
-    Cv, Cv_err = jackknife(samples_Z, samples_m, samples_p) do sample_Z, sample_m, sample_p
+    Cv, Cv_err = analyze(result, :Z, :m, :p) do sample_Z, sample_m, sample_p
         simple.Cv +
         (1.0/dbeta^2 * (Zrat_m * sample_m + Zrat_p * sample_p) / sample_Z -
          2.0/dbeta^2 -

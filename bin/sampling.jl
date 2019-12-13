@@ -62,6 +62,8 @@ else
     progress_output = stderr
 end
 
+sm = make_sampling_method(num_samples)
+
 if c[:pigs]
     trial = UniformTrialWavefunction(sys)
 
@@ -74,7 +76,7 @@ if c[:pigs]
     if !isnothing(dbeta)
         error("Finite difference not supported for PIGS")
     else
-        sampling = PigsSampling(sys, trial, beta, P, num_samples; sampling_sys=sampling_sys, sampling_trial=sampling_trial, progress_output=progress_output)
+        sampling = PigsSampling(sys, trial, beta, P, sm; sampling_sys=sampling_sys, sampling_trial=sampling_trial, progress_output=progress_output)
     end
 
     println("Z: $(sampling.Z) ± $(sampling.Z_err)")
@@ -83,9 +85,9 @@ if c[:pigs]
     println("S2: $(sampling.S2) ± $(sampling.S2_err)")
 else
     if !isnothing(dbeta)
-        sampling = SamplingFiniteDifference(sys, beta, dbeta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
+        sampling = SamplingFiniteDifference(sys, beta, dbeta, P, sm; sampling_sys=sampling_sys, progress_output=progress_output)
     else
-        sampling = SamplingPrimitiveThermodynamic(sys, beta, P, num_samples; sampling_sys=sampling_sys, progress_output=progress_output)
+        sampling = SamplingPrimitiveThermodynamic(sys, beta, P, sm; sampling_sys=sampling_sys, progress_output=progress_output)
     end
 
     println("Z: $(sampling.Z) ± $(sampling.Z_err)")

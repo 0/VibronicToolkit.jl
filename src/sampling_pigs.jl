@@ -79,17 +79,17 @@ struct PigsSampling <: Sampling
 end
 
 """
-    PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_trial::Maybe{TrialWavefunction}=nothing, progress_output::IO=stderr)
+    PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, sm::SamplingMethod; sampling_sys::Maybe{System}=nothing, sampling_trial::Maybe{TrialWavefunction}=nothing, progress_output::IO=stderr)
 
 Calculate the solution for `sys` with `trial` propagated by `beta` using `P`
-links and `num_samples` random samples.
+links and sampling method `sm`.
 
 If `sampling_sys` is provided, it is used for sampling. Otherwise, sampling
 defaults to the simplified diagonal subsystem of `sys`.
 
 The progress meter is written to `progress_output`.
 """
-function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, sampling_trial::Maybe{TrialWavefunction}=nothing, progress_output::IO=stderr)
+function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::Int, sm::SamplingMethod; sampling_sys::Maybe{System}=nothing, sampling_trial::Maybe{TrialWavefunction}=nothing, progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
     pseudosp = PigsSamplingParameters(sys_diag_simple, trial, beta, P)
@@ -98,33 +98,26 @@ function PigsSampling(sys::System, trial::TrialWavefunction, beta::Float64, P::I
     isnothing(sampling_trial) && (sampling_trial = trial)
     sp = PigsSamplingParameters(sampling_sys, sampling_trial, beta, P)
 
-    samples_Z = zeros(Float64, num_samples)
-    samples_E = zeros(Float64, num_samples)
-    samples_rho = Array{Matrix{Float64}}(undef, num_samples)
-
-    loop_samples(sp, num_samples, progress_output) do n, qs
-        sample = get_sample_pigs(sys, pseudosp, sp, qs)
-        samples_Z[n] = sample[1]
-        samples_E[n] = sample[2]
-        samples_rho[n] = sample[3]
+    result = loop_samples(sp, sm, [:Z, :E, :rho], progress_output) do qs
+        get_sample_pigs(sys, pseudosp, sp, qs)
     end
 
     simple = PigsAnalytical(sampling_sys, sampling_trial, beta)
     normalization = simple.Z
 
-    Z, Z_err = jackknife(samples_Z) do sample_Z
+    Z, Z_err = analyze(result, :Z) do sample_Z
         sample_Z * normalization
     end
 
-    E, E_err = jackknife(samples_Z, samples_E) do sample_Z, sample_E
+    E, E_err = analyze(result, :Z, :E) do sample_Z, sample_E
         sample_E / sample_Z
     end
 
-    SvN, SvN_err = jackknife(samples_Z, samples_rho) do sample_Z, sample_rho
+    SvN, SvN_err = analyze(result, :Z, :rho) do sample_Z, sample_rho
         S_vn(sample_rho / sample_Z)
     end
 
-    S2, S2_err = jackknife(samples_Z, samples_rho) do sample_Z, sample_rho
+    S2, S2_err = analyze(result, :Z, :rho) do sample_Z, sample_rho
         S_renyi(sample_rho / sample_Z)
     end
 

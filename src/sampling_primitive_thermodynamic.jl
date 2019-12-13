@@ -82,17 +82,17 @@ struct SamplingPrimitiveThermodynamic <: Sampling
 end
 
 """
-    SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
+    SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, sm::SamplingMethod; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
 
-Calculate the solution for `sys` at `beta` using `P` links and `num_samples`
-random samples.
+Calculate the solution for `sys` at `beta` using `P` links and sampling method
+`sm`.
 
 If `sampling_sys` is provided, it is used for sampling. Otherwise, sampling
 defaults to the simplified diagonal subsystem of `sys`.
 
 The progress meter is written to `progress_output`.
 """
-function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_samples::Int; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
+function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, sm::SamplingMethod; sampling_sys::Maybe{System}=nothing, progress_output::IO=stderr)
     sys_diag = diag(sys)
     sys_diag_simple = simplify(sys_diag)
     pseudosp = SamplingParameters(sys_diag_simple, beta, P)
@@ -100,29 +100,22 @@ function SamplingPrimitiveThermodynamic(sys::System, beta::Float64, P::Int, num_
     isnothing(sampling_sys) && (sampling_sys = sys_diag_simple)
     sp = SamplingParameters(sampling_sys, beta, P)
 
-    samples_Z = zeros(Float64, num_samples)
-    samples_E = zeros(Float64, num_samples)
-    samples_Cv = zeros(Float64, num_samples)
-
-    loop_samples(sp, num_samples, progress_output) do n, qs
-        sample = get_sample_pt(sys, pseudosp, sp, qs)
-        samples_Z[n] = sample[1]
-        samples_E[n] = sample[2]
-        samples_Cv[n] = sample[3]
+    result = loop_samples(sp, sm, [:Z, :E, :Cv], progress_output) do qs
+        get_sample_pt(sys, pseudosp, sp, qs)
     end
 
     simple = Analytical(sampling_sys, beta)
     normalization = simple.Z
 
-    Z, Z_err = jackknife(samples_Z) do sample_Z
+    Z, Z_err = analyze(result, :Z) do sample_Z
         sample_Z * normalization
     end
 
-    E, E_err = jackknife(samples_Z, samples_E) do sample_Z, sample_E
+    E, E_err = analyze(result, :Z, :E) do sample_Z, sample_E
         sample_E / sample_Z
     end
 
-    Cv, Cv_err = jackknife(samples_Z, samples_E, samples_Cv) do sample_Z, sample_E, sample_Cv
+    Cv, Cv_err = analyze(result, :Z, :E, :Cv) do sample_Z, sample_E, sample_Cv
         (sample_Cv / sample_Z - (sample_E / sample_Z)^2) * beta^2
     end
 

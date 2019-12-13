@@ -33,6 +33,8 @@ export
     TrialWavefunction,
     UniformTrialWavefunction,
 
+    make_sampling_method,
+
     Analytical,
     SumOverStates,
     Trotter,
