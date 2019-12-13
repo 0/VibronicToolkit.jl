@@ -54,6 +54,13 @@ Compute the value of the multi-mode harmonic oscillator wavefunction.
 ho_wf(ns::Vector{Int}, qs::Vector{Float64}) = prod(x -> ho_wf(x...), zip(ns, qs))
 
 """
+    gauss_cdf_inv(phi::Float64)
+
+Invert the standard Gaussian cdf `phi`.
+"""
+gauss_cdf_inv(phi::Float64) = -sqrt(2) * erfcinv(2 * phi)
+
+"""
     @cat A B
 
 Append `B` along the last dimension of `A`, modifying the binding of `A`.

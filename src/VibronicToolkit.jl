@@ -10,6 +10,7 @@ using Distributions: MvNormal, sample
 import JSON
 using ProgressMeter: Progress, ProgressWrapper
 using Qutilities: ptrace
+using SpecialFunctions: erfcinv
 using StatsBase: Weights
 
 # We re-export diag and isdiag from LinearAlgebra.
