@@ -33,6 +33,10 @@ s.autofix_names = true
         help = "number of samples"
         arg_type = Int
         required = true
+    "--num-boot"
+        metavar = "B"
+        help = "number of bootstrap samples"
+        arg_type = Int
     "--sampling-conf"
         metavar = "FILE"
         help = "path to sampling config file"
@@ -51,6 +55,7 @@ else
 end
 P = c[:num_links]
 num_samples = c[:num_samples]
+num_boot = c[:num_boot]
 if !isnothing(c[:sampling_conf])
     sampling_sys = read(c[:sampling_conf], DiagonalSystem)
 else
@@ -62,7 +67,7 @@ else
     progress_output = stderr
 end
 
-sm = make_sampling_method(num_samples)
+sm = make_sampling_method(num_samples, num_boot)
 
 if c[:pigs]
     trial = UniformTrialWavefunction(sys)
