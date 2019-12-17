@@ -83,6 +83,7 @@ test_params_sym3 = test_freq_flat, [test_energy_sym, test_lin_sym3]
     @testset "trial.jl" begin include("trial.jl") end
 
     @testset "jackknife.jl" begin include("jackknife.jl") end
+    @testset "spsa.jl" begin include("spsa.jl") end
 
     @testset "analytical.jl" begin include("analytical.jl") end
     @testset "sos.jl" begin include("sos.jl") end

@@ -78,6 +78,7 @@ include("operators.jl")
 include("trial.jl")
 
 include("jackknife.jl")
+include("spsa.jl")
 
 include("analytical.jl")
 include("sos.jl")
