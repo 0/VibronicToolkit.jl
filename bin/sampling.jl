@@ -37,6 +37,10 @@ s.autofix_names = true
         metavar = "B"
         help = "number of bootstrap samples"
         arg_type = Int
+    "--num-seqs"
+        metavar = "S"
+        help = "number of randomized quasi-random sequences"
+        arg_type = Int
     "--sampling-conf"
         metavar = "FILE"
         help = "path to sampling config file"
@@ -56,6 +60,7 @@ end
 P = c[:num_links]
 num_samples = c[:num_samples]
 num_boot = c[:num_boot]
+num_seqs = c[:num_seqs]
 if !isnothing(c[:sampling_conf])
     sampling_sys = read(c[:sampling_conf], DiagonalSystem)
 else
@@ -67,7 +72,7 @@ else
     progress_output = stderr
 end
 
-sm = make_sampling_method(num_samples, num_boot)
+sm = make_sampling_method(num_samples, num_boot, num_seqs)
 
 if c[:pigs]
     trial = UniformTrialWavefunction(sys)

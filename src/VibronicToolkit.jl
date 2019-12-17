@@ -4,12 +4,13 @@ import LinearAlgebra: diag, isdiag
 using LinearAlgebra: diagm, Diagonal, dot, eigen, eigvals, I, issymmetric, svd,
                      Symmetric, tr
 using Printf: @printf
-using Statistics: mean, std
+using Statistics: mean, std, var
 
 using Distributions: MvNormal, sample
 import JSON
 using ProgressMeter: Progress, ProgressWrapper
 using Qutilities: ptrace
+using Sobol: next!, SobolSeq
 using SpecialFunctions: erfcinv
 using StatsBase: Weights
 
