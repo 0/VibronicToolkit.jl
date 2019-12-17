@@ -50,16 +50,16 @@ To run the following examples, you should set the project (e.g. using `--project
 * `julia bin/analytical.jl --conf examples/s2m2_uncoupled.json --beta 43.21`
 * `julia bin/sos.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30`
 * `julia bin/trotter.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30 --num-links 20 --splitting p2_U`
-* `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000000`
-* `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --dbeta 1e-4 --num-links 20 --num-samples 100000 --num-boot 100 --num-seqs 10`
+* `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 10000`
+* `julia bin/sampling.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --dbeta 1e-4 --num-links 20 --num-samples 1000 --num-boot 100 --num-seqs 10`
 
 ### PIGS
 
 * `julia bin/analytical.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21`
 * `julia bin/sos.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30`
 * `julia bin/trotter.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --basis-size 30 --num-links 20`
-* `julia bin/sampling.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000000`
-* `julia bin/sampling.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 100000 --num-boot 100 --num-seqs 10`
+* `julia bin/sampling.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 10000`
+* `julia bin/sampling.jl --pigs --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 1000 --num-boot 100 --num-seqs 10`
 
 ### Utilities
 

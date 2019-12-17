@@ -1,9 +1,9 @@
-for (num_boot, num_seqs) in [(nothing, nothing), (10, nothing), (10, 4)]
+for (num_boot, num_seqs) in [(nothing, nothing), (2, nothing), (2, 3)]
     let sys = DenseSystem(test_params...),
         trial = UniformTrialWavefunction(sys),
         beta = 12.34,
-        P = 256,
-        num_samples = 100,
+        P = 16,
+        num_samples = 10,
         sm = make_sampling_method(num_samples, num_boot, num_seqs),
         sampling_sys = DiagonalSystem(test_params_sampling...),
         sampling_trial = UniformTrialWavefunction(sampling_sys)
