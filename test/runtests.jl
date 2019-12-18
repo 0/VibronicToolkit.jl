@@ -98,4 +98,5 @@ test_params_sym3 = test_freq_flat, [test_energy_sym, test_lin_sym3]
     @testset "density.jl" begin include("density.jl") end
 
     @testset "iterative_decomposition.jl" begin include("iterative_decomposition.jl") end
+    @testset "gmd_optimization.jl" begin include("gmd_optimization.jl") end
 end

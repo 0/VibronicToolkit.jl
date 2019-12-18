@@ -67,6 +67,7 @@ To run the following examples, you should set the project (e.g. using `--project
 * `julia bin/density.jl --conf examples/s2m2_coupled.json --beta 43.21 --basis-size 30 --sampling-conf examples/s2m2_simple.json --num-links 20 --extent -2,2,-1,1 --out-path density.pdf --contour`
 * `julia bin/density.jl --pigs --conf examples/s2m2_coupled.json --beta 43.21 --basis-size 30 --sampling-conf examples/s2m2_simple.json --num-links 20 --extent -2,2,-1,1 --out-path density.pdf --out-path-exact density_exact.pdf --contour`
 * `julia bin/iterative_decomposition.jl --conf examples/s2m2_coupled.json --out-conf decomp.json --out-vs decomp.dat`
+* `julia bin/gmd_optimization.jl --conf examples/s2m2_uncoupled.json --beta 43.21 --num-links 20 --num-samples 100 --num-iter 10 --spsa-a 1e-3 --loss-bound-lower 1 --loss-bound-upper 2 --repulsion-stiffness 3 --repulsion-coefficient 1 --weight-imbalance-coefficient 1.5 --num-surfaces 4 --out-conf opt.json
 
 
 ## Testing

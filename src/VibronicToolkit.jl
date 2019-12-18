@@ -8,7 +8,7 @@ using Statistics: mean, std, var
 
 using Distributions: MvNormal, sample
 import JSON
-using ProgressMeter: Progress, ProgressWrapper
+using ProgressMeter: finish!, Progress, ProgressWrapper, update!
 using Qutilities: ptrace
 using Sobol: next!, SobolSeq
 using SpecialFunctions: erfcinv
@@ -53,7 +53,11 @@ export
     DiagonalDensity,
     PigsDiagonalDensity,
 
-    IterativeDecomposition
+    IterativeDecomposition,
+
+    GmdOptimizationParameters,
+    GmdOptimization,
+    GmdOptimizationDeformation
 
 """
 Trotter splitting variant.
@@ -90,5 +94,6 @@ include("pes.jl")
 include("density.jl")
 
 include("iterative_decomposition.jl")
+include("gmd_optimization.jl")
 
 end

@@ -1,4 +1,4 @@
-using VibronicToolkit: @cat, gauss_cdf_inv, hermite, ho_wf
+using VibronicToolkit: @cat, gauss_cdf_inv, hermite, ho_wf, shannon_norm
 
 let A = collect(reshape(1:9, 3, 3))
 
@@ -45,6 +45,15 @@ end
 for (x, phi) in [(0.0, 0.5), (0.5, 0.6914624612740), (-1.0, 0.1586552539315),
                  (3.5, 0.9997673709210), (-5.5, 1.898956246589e-8)]
     @test isapprox(gauss_cdf_inv(phi), x)
+end
+
+for (xs, ent) in [([1.0, 0.0], 0.0),
+                  ([0.5, 0.5], 1.0),
+                  ([1.0, 0.0, 0.0, 0.0], 0.0),
+                  ([0.5, 0.5, 0.0, 0.0], 0.5),
+                  ([0.5, 0.25, 0.25, 0.0], 0.75),
+                  ([0.25, 0.25, 0.25, 0.25], 1.0)]
+    @test isapprox(shannon_norm(xs), ent)
 end
 
 let A = collect(reshape(1:72, 2, 3, 2, 3, 2)),

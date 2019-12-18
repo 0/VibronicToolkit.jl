@@ -61,6 +61,13 @@ Invert the standard Gaussian cdf `phi`.
 gauss_cdf_inv(phi::Float64) = -sqrt(2) * erfcinv(2 * phi)
 
 """
+    shannon_norm(xs::AbstractVector)
+
+Compute the normalized Shannon entropy of `xs`, ranging from 0 to 1.
+"""
+shannon_norm(xs::AbstractVector) = -sum(x * log(x) for x in xs if x > 0) / log(length(xs))
+
+"""
     @cat A B
 
 Append `B` along the last dimension of `A`, modifying the binding of `A`.
